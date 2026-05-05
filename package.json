@@ -1,0 +1,39 @@
+{
+  "name": "my-solid-app",
+  "module": "index.ts",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "serve": "vite preview"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "2.4.14",
+    "@tailwindcss/vite": "^4.2.4",
+    "@types/bun": "latest",
+    "eslint": "^10.3.0",
+    "tailwindcss": "^4.2.4",
+    "vite": "^8.0.10",
+    "vite-plugin-solid": "^2.11.12"
+  },
+  "peerDependencies": {
+    "typescript": "5"
+  },
+  "dependencies": {
+    "@ark-ui/solid": "^5.36.2",
+    "@supabase/supabase-js": "^2.105.1",
+    "@tanstack/solid-form": "^1.29.1",
+    "@tanstack/solid-query": "^5.100.7",
+    "@tanstack/solid-router": "^1.169.1",
+    "@tanstack/solid-table": "^8.21.3",
+    "arktype": "^2.2.0",
+    "clsx": "^2.1.1",
+    "date-fns": "^4.1.0",
+    "libphonenumber-js": "^1.12.42",
+    "lucide-solid": "^1.14.0",
+    "solid-js": "^1.9.12",
+    "tailwind-merge": "^3.5.0",
+    "tailwind-variants": "^3.2.2"
+  }
+}
