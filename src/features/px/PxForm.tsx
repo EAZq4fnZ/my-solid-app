@@ -41,7 +41,7 @@ export const PxForm = (props: PxFormProps) => {
               value={field().state.value}
               onInput={(e) => field().handleChange(e.currentTarget.value)}
               readOnly={isReadOnly()} // 表示モードの切り替え
-              errortext={field().state.meta.errors} // バリデーション結果の表示
+              //errortext={field().state.meta.errors} // バリデーション結果の表示
             />
           )}
         />
@@ -53,7 +53,7 @@ export const PxForm = (props: PxFormProps) => {
             <div>
               <Input
                 type="date"
-                value={field().state.value}
+                //value={field().state.value}
                 readOnly={isReadOnly()}
               />
               <p class="text-sm">和暦: {formatToJpEra(field().state.value)}</p>

@@ -1,21 +1,53 @@
 {
   "name": "my-solid-app",
+  "version": "0.0.0",
   "module": "index.ts",
   "type": "module",
   "private": true,
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "serve": "vite preview"
+    "serve": "vite preview",
+    "test": "vitest",
+    "test:ui": "vitest --ui"
+  },
+  "vitest": {
+    "test": {
+      "environment": "jsdom",
+      "globals": true,
+      "transformMode": {
+        "web": [
+          "/\\.[jt]sx?$/"
+        ]
+      },
+      "include": [
+        "src/**/*.{test,spec}.{ts,tsx}"
+      ]
+    }
+  },
+  "eslintConfig": {
+    "extends": [
+      "solid"
+    ]
+  },
+  "bun": {
+    "watch": [
+      "src/**/*.{ts,tsx}"
+    ]
   },
   "devDependencies": {
     "@biomejs/biome": "2.4.14",
     "@tailwindcss/vite": "^4.2.4",
+    "@testing-library/jest-dom": "^6.9.1",
     "@types/bun": "latest",
+    "@vitest/ui": "^4.1.5",
     "eslint": "^10.3.0",
+    "jsdom": "^29.1.1",
+    "solid-testing-library": "^0.5.1",
     "tailwindcss": "^4.2.4",
     "vite": "^8.0.10",
-    "vite-plugin-solid": "^2.11.12"
+    "vite-plugin-solid": "^2.11.12",
+    "vitest": "^4.1.5"
   },
   "peerDependencies": {
     "typescript": "5"
