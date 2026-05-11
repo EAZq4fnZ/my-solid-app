@@ -47,7 +47,7 @@ export const getJpEraInfo = (
     | { year?: number; month?: number; day?: number }
     | null,
 ): JpEraInfo => {
-  const normalizedDate = toDate(arg); // 不正なら null
+  const normalizedDate = toDate(arg); // 不正なら null を返し
   const date = normalizedDate ?? new Date(); // 不正なら「今日」を計算のベースにする
   const isValid = !!normalizedDate; // もともとの入力が正しかったか
 
@@ -82,6 +82,21 @@ export const getJpEraInfo = (
       isValid: false,
     };
   }
+};
+
+/**
+ * 西暦から和暦への変換ユーティリティ
+ */
+export const format2JpEra = (isoDate: string | undefined): string => {
+  if (!isoDate) return '';
+  const d = new Date(isoDate);
+
+  if (Number.isNaN(d.getTime())) return ''; // 不正な日付
+
+  const _jpEraInfo = getJpEraInfo(d);
+  return _jpEraInfo.isValid
+    ? `${d.getFullYear()}(${_jpEraInfo.label.replace('年', '')})`
+    : '';
 };
 
 /**

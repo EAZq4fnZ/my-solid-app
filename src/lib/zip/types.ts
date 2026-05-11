@@ -10,14 +10,15 @@ export interface StAddrInfo {
     townName: string; // 町域（例：霞が関）
     blockName?: string; // 丁目・番地・号（例：1丁目1-1）
   };
-  // 拡張メタデータ（APIごとの生データを一時保持する場合）
+  // システム連携情報 zipParts には必要ないが、外部APIからのデータを保持するために持っておく
+  // biome-ignore lint/suspicious/noExplicitAny: 外部APIからの動的なメタデータを保持するため意図的に any を使用
   meta?: Record<string, any>;
 }
 
 // システム連携情報 後にmetaレコードに書き込む
+// ↓ デジタルアドレスAPIからの取得情報
 /* dgaParts?: {
     dgaCode?: string; // システム連携用（デジタルアドレスAPI等から取得）
-
     prefCode?: string; // 都道府県コード（JISコード2桁）
     prefKana: string; // 都道府県名（カナ）
     prefRoma: string; // 都道府県名（ローマ字）
@@ -26,12 +27,10 @@ export interface StAddrInfo {
     cityRoma: string; // 市区町村名（ローマ字）
     townKana: string; // 町域名（カナ）
     townRoma: string; // 町域名（ローマ字）
-
     bizName?: string; // 法人名
     bizKana?: string; // 法人名（カナ）
     bizRoma?: string; // 法人名（ローマ字）
   };
-
   // 位置情報（地図連携用）
   location?: {
     lat: number;
