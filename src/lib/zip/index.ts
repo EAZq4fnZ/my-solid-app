@@ -1,6 +1,6 @@
 // src/lib/zip/index.ts
 import { yubinbangoProvider } from './strategies/yubinbango-data';
-import { ZipProvider } from './types';
+import type { ZipProvider } from './types';
 
 /**
  * ★ 将来、デジタルアドレスAPIやzipcloudを追加したら、
