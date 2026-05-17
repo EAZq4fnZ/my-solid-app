@@ -5,6 +5,7 @@ import {
   RouterProvider,
   createRoute,
 } from '@tanstack/solid-router';
+
 import './index.css';
 import { Button } from './components/ui/Button';
 import { Route as rootRoute } from './routes/root';

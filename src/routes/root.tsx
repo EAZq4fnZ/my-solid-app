@@ -1,7 +1,8 @@
-import { BasicDateInput } from '@/components/ui/BasicDateInput';
-import { DatePicker } from '@/components/ui/DatePicker';
+// src/routes/root.tsx
 import { parseDate } from '@ark-ui/solid';
 import { createRootRoute, Link, Outlet } from '@tanstack/solid-router';
+
+import { DatePicker } from '@/components/ui/DatePicker';
 
 export const Route = createRootRoute({
   component: () => (

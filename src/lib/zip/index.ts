@@ -2,9 +2,12 @@
 import { yubinbangoProvider } from './strategies/yubinbango-data';
 import type { ZipProvider } from './types';
 
+export { StAddrInfo, ZipCode } from './types';
+export { useZip } from './useZip';
+
 /**
- * ★ 将来、デジタルアドレスAPIやzipcloudを追加したら、
- * ここで読み込んで activeProvider を差し替えるだけ。
+ * 将来、デジタルアドレスAPIやzipcloudを追加したら、
+ * ここで読み込んで activeProvider を差し替える
  */
 const activeProvider: ZipProvider = yubinbangoProvider;
 

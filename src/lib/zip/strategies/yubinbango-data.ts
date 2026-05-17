@@ -3,8 +3,12 @@ import {
   JIS_PREFECTURE_CODES,
   PREFECTURE_MASTER,
 } from '@/constants/prefectures';
-
-import type { StAddrInfo, ZipProvider, ZipResult } from '../types';
+import {
+  type StAddrInfo,
+  ZipCode,
+  type ZipProvider,
+  type ZipResult,
+} from '../types';
 
 /**
  * yubinbango-dataの各エントリの型定義
@@ -28,7 +32,7 @@ export const yubinbangoProvider: ZipProvider = {
    * @param zip 郵便番号 (例: 1234567, 123-4567) string
    * @returns 住所情報 {success: true, data: StAddrInfo, errMessage: null} または {success: false, data: null, errMessage: string}
    */
-  fetchByZip: async (zip: string): Promise<ZipResult<StAddrInfo | null>> => {
+  fetchByZip: async (zip: string): Promise<ZipResult<StAddrInfo>> => {
     const normalizedZip = zip.replace('-', ''); // 検索のためハイフンを削除
     const first3 = normalizedZip.slice(0, 3); // 先頭の3桁を抽出。yubinbango-dataのファイル名は[3桁.js]となっている
 
@@ -49,12 +53,17 @@ export const yubinbangoProvider: ZipProvider = {
       const jsonStr = text.replace(/^\$yubinBango\((.*)\);?$/, '$1');
       const data: YubinDataMap = JSON.parse(jsonStr);
 
-      // 生データのキーは "5590001" のような7桁フル
-      const details = data[normalizedZip];
-      if (!details) return { success: true, data: null, errMessage: null }; // 検索結無し
+      const details = data[normalizedZip]; // jsonから郵便番号(ハイフンなし)で検索
+      if (!details)
+        // 検索結無し
+        return {
+          success: false,
+          data: null,
+          errMessage: '該当する郵便番号の住所が見つかりませんでした。',
+        };
 
       const romanKey = JIS_PREFECTURE_CODES[details[0] - 1];
-      const prefName = PREFECTURE_MASTER[romanKey];
+      const prefName = PREFECTURE_MASTER[romanKey]; // 都道府県コードから都道府県名を取得
 
       return {
         success: true, // 検索成功
@@ -62,12 +71,13 @@ export const yubinbangoProvider: ZipProvider = {
         data: {
           fullAddress: `${prefName}${details[1]}${details[2]}${details[3] ?? ''}`,
           addrParts: {
-            // 保存・表示用に 123-4567 形式に整形
-            zipCode: `${normalizedZip.slice(0, 3)}-${normalizedZip.slice(3)}`,
+            zipCode: ZipCode.fromRaw(
+              ZipCode.normalize(normalizedZip), // 検索結果の郵便番号に正規化(ハイフン付加)してZipCode型に変換
+            ),
             prefName,
             cityName: details[1],
             townName: details[2],
-            blockName: details[3] ?? '',
+            blockName: '', // details[3] ?? '' yubinbango-dataには番地情報はない
           },
         },
       };
@@ -85,19 +95,21 @@ export const yubinbangoProvider: ZipProvider = {
    * 入力中の文字列から候補リストを生成する
    */
   fetchSuggestions: async (input: string): Promise<ZipResult<StAddrInfo[]>> => {
-    const normalizedInput = input.replace('-', '');
+    const normalizedInput = input.replace('-', ''); // 検索のため一旦ハイフンを削除
     if (normalizedInput.length < 3)
       return { success: true, data: [], errMessage: null }; // 3桁未満は検索・通信対象外
 
     const first3 = normalizedInput.slice(0, 3); // 先頭の3桁を抽出
 
     try {
+      // 郵便番号3桁に対応するJSファイルを取得
       const res = await fetch(
         `https://yubinbango.github.io/yubinbango-data/data/zips/${first3}.js`,
       );
       if (!res.ok) return { success: true, data: [], errMessage: null }; // APIアクセスに失敗
 
       const text = await res.text();
+      // $yubinBango({...}); というJS実行形式からJSON部分だけを抽出
       const jsonStr = text.replace(/^\$yubinBango\((.*)\);?$/, '$1');
       const data: YubinDataMap = JSON.parse(jsonStr);
 
@@ -106,17 +118,16 @@ export const yubinbangoProvider: ZipProvider = {
         .filter(([fullZip]) => fullZip.startsWith(normalizedInput)) // 入力された数字で始まるものを抽出
         .map(([fullZip, d]) => {
           const romanKey = JIS_PREFECTURE_CODES[d[0] - 1];
+          // jsonから都道府県コード→都道府県名を変換
           const prefName = PREFECTURE_MASTER[romanKey];
-
           return {
             fullAddress: `${prefName}${d[1]}${d[2]}${d[3] ?? ''}`,
             addrParts: {
-              // キー（"5590001"）を "559-0001" に加工
-              zipCode: `${fullZip.slice(0, 3)}-${fullZip.slice(3)}`,
+              zipCode: ZipCode.fromRaw(ZipCode.normalize(fullZip)),
               prefName,
               cityName: d[1],
               townName: d[2],
-              blockName: d[3] ?? '',
+              blockName: '', // d[3] ?? '', yubinbango-dataには番地情報はない
             },
           };
         });

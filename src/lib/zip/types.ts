@@ -1,51 +1,93 @@
 // src/lib/zip/types.ts
 
+/**
+ * 郵便番号 ZipCode 型 (123-4567)
+ * @see https://ja.wikipedia.org/wiki/%E9%83%B5%E4%BE%BF%E7%95%AA%E5%8F%B7
+ */
+export type ZipCode = string & { readonly __brand: unique symbol };
+
+export const ZipCode = {
+  /** ゆるい判定：全角・半角・ハイフンの有無に関わらず、数字7桁を抽出する */
+  LOOSE_REGEX: /^([0-9０-９]{3})[-−ー－\s]?([0-9０-９]{4})$/,
+
+  /** 厳格な判定：すでにシステム標準の「123-4567」の形になっているか */
+  STRICT_REGEX: /^\d{3}-\d{4}$/,
+
+  /**
+   * ユーザーの入力（全角・ハイフンなし等）を半角・ハイフン付きの「123-4567」へクレンジングする
+   * UIの onBlur ハンドラーや内部処理で行う
+   * @param value 検証・変換 対象の文字列 例: "123-4567, 1234567"
+   * @returns 郵便番号 string
+   * @throws 郵便番号として成立しない文字列の場合にエラーを投げます
+   */
+  normalize(value: string): string {
+    const cleaned = value
+      .replace(/[０-９]/g, (s) => String.fromCharCode(s.charCodeAt(0) - 0xfee0))
+      .replace(/[－−ー]/g, '-')
+      .trim();
+
+    const match = cleaned.match(this.LOOSE_REGEX);
+    if (!match) return value; // 形式が崩れすぎている場合はそのまま戻してバリデーターに落とさせる
+
+    const [, p1, p2] = match;
+    return `${p1}-${p2}`;
+  },
+
+  /**
+   * 渡された文字列を厳格な ZipCode 型に変換する
+   * @param value 検証・変換 対象の文字列 例: "123-4567"
+   * @returns 郵便番号 ZipCode 型
+   * @throws 郵便番号として成立しない文字列の場合にエラーを投げます
+   */
+  fromRaw(value: string): ZipCode {
+    const normalized = this.normalize(value);
+    if (!this.STRICT_REGEX.test(normalized)) {
+      throw new Error('郵便番号は数字7桁で入力してください');
+    }
+    return normalized as ZipCode;
+  },
+
+  /**
+   * 渡された文字列がシステム公認の ZipCode 型（123-4567）を満たしているか判定する型ガード
+   */
+  isValid(value: string): value is ZipCode {
+    return this.STRICT_REGEX.test(value);
+  },
+};
+
+/**
+ * 住所情報 interface StAddrInfo
+ * -fullAddress: 住所全体 string
+ * -zipCode: 郵便番号 ZipCode 型
+ * -prefName: 都道府県名
+ * -cityName: 市区町村名
+ * -townName: 町域名
+ * -blockName: 建物名
+ * -meta: 外部APIから取得した住所情報のメタデータ
+ * (外部APIから取得したものを保持するため意図的に any を使用)
+ */
 export interface StAddrInfo {
-  // 基本情報
-  fullAddress: string; // 結合済み住所
+  fullAddress: string;
   addrParts: {
-    zipCode: string; // 郵便番号 （例：123-4567）
-    prefName: string; // 都道府県（例：東京都）
-    cityName: string; // 市区町村（例：千代田区）
-    townName: string; // 町域（例：霞が関）
-    blockName?: string; // 丁目・番地・号（例：1丁目1-1）
+    zipCode: ZipCode; // 郵便番号 ZipCode 型
+    prefName: string;
+    cityName: string;
+    townName: string;
+    blockName?: string;
   };
-  // システム連携情報 zipParts には必要ないが、外部APIからのデータを保持するために持っておく
   // biome-ignore lint/suspicious/noExplicitAny: 外部APIからの動的なメタデータを保持するため意図的に any を使用
   meta?: Record<string, any>;
 }
 
-// システム連携情報 後にmetaレコードに書き込む
-// ↓ デジタルアドレスAPIからの取得情報
-/* dgaParts?: {
-    dgaCode?: string; // システム連携用（デジタルアドレスAPI等から取得）
-    prefCode?: string; // 都道府県コード（JISコード2桁）
-    prefKana: string; // 都道府県名（カナ）
-    prefRoma: string; // 都道府県名（ローマ字）
-    cityCode?: string; // 自治体コード（JISコード5桁）
-    cityKana: string; // 市区町村名（カナ）
-    cityRoma: string; // 市区町村名（ローマ字）
-    townKana: string; // 町域名（カナ）
-    townRoma: string; // 町域名（ローマ字）
-    bizName?: string; // 法人名
-    bizKana?: string; // 法人名（カナ）
-    bizRoma?: string; // 法人名（ローマ字）
-  };
-  // 位置情報（地図連携用）
-  location?: {
-    lat: number;
-    lng: number;
-  };
-*/
-
-// 成功か失敗かを明示するラップ型
-export type ZipResult<T> =
-  | { success: true; data: T; errMessage: null }
-  | { success: false; data: null; errMessage: string }; // 'NOT_FOUND' | 'NETWORK_ERROR' 等
-
+// interface ZipProvider
 export interface ZipProvider {
   name: string;
-  // 戻り値を型でラップする
-  fetchByZip: (zip: string) => Promise<ZipResult<StAddrInfo | null>>;
+  fetchByZip: (zip: string) => Promise<ZipResult<StAddrInfo>>;
   fetchSuggestions?: (input: string) => Promise<ZipResult<StAddrInfo[]>>;
+}
+
+export interface ZipResult<T> {
+  success: boolean;
+  data: T | null;
+  errMessage: string | null;
 }

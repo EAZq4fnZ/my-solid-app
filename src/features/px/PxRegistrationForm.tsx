@@ -4,12 +4,11 @@ import { For } from 'solid-js';
 
 import { Field } from '@/components/ui/Field';
 import { EraDatePicker } from '@/components/ui/DatePicker/EraDatePicker';
-import { Button } from '@/components/ui/Button'; 
+import { Button } from '@/components/ui/Button';
 import { GENDER_CODES } from '@/constants/gender';
-import { 
-  pxInsertValidators, 
-  defaultPxValues 
-} from '../schemas/pxSchema';
+import { pxInsertValidators, defaultPxValues } from './pxSchema';
+import { FieldSet } from '@/components/ui/Fieldset';
+import { Fieldset } from '@ark-ui/solid';
 
 export const PxRegistrationForm = () => {
   const form = createForm(() => ({
@@ -39,15 +38,17 @@ export const PxRegistrationForm = () => {
       </header>
 
       {/* 氏名グループ */}
-      <Field.FieldSet class="space-y-3">
-        <Field.Legend class="text-sm font-semibold text-zinc-400">お名前</Field.Legend>
+      <FieldSet class="space-y-3">
+        <Fieldset.Legend class="text-sm font-semibold text-zinc-400">
+          お名前
+        </Fieldset.Legend>
         <div class="grid grid-cols-2 gap-4">
           <form.Field name="last_name">
             {(field) => (
-              <Field 
-                label="姓" 
-                labelClass="sr-only" 
-                error={field().state.meta.errors[0]?.toString()}
+              <Field
+                label="姓"
+                class="sr-only"
+                error={field().state.meta.errors[0]}
               >
                 <input
                   value={field().state.value}
@@ -60,10 +61,10 @@ export const PxRegistrationForm = () => {
           </form.Field>
           <form.Field name="first_name">
             {(field) => (
-              <Field 
-                label="名" 
-                labelClass="sr-only" 
-                error={field().state.meta.errors[0]?.toString()}
+              <Field
+                label="名"
+                class="sr-only"
+                error={field().state.meta.errors[0]}
               >
                 <input
                   value={field().state.value}
@@ -75,18 +76,20 @@ export const PxRegistrationForm = () => {
             )}
           </form.Field>
         </div>
-      </Field.FieldSet>
+      </FieldSet>
 
       {/* フリガナグループ (ArkTypeにより全角カナに自動変換されます) */}
-      <Field.FieldSet class="space-y-3">
-        <Field.Legend class="text-sm font-semibold text-zinc-400">フリガナ</Field.Legend>
+      <FieldSet class="space-y-3">
+        <Fieldset.Legend class="text-sm font-semibold text-zinc-400">
+          フリガナ
+        </Fieldset.Legend>
         <div class="grid grid-cols-2 gap-4">
           <form.Field name="last_kana">
             {(field) => (
-              <Field 
-                label="セイ" 
-                labelClass="sr-only" 
-                error={field().state.meta.errors[0]?.toString()}
+              <Field
+                label="セイ"
+                class="sr-only"
+                error={field().state.meta.errors[0]}
               >
                 <input
                   value={field().state.value}
@@ -99,10 +102,10 @@ export const PxRegistrationForm = () => {
           </form.Field>
           <form.Field name="first_kana">
             {(field) => (
-              <Field 
-                label="メイ" 
-                labelClass="sr-only" 
-                error={field().state.meta.errors[0]?.toString()}
+              <Field
+                label="メイ"
+                class="sr-only"
+                error={field().state.meta.errors[0]}
               >
                 <input
                   value={field().state.value}
@@ -114,20 +117,26 @@ export const PxRegistrationForm = () => {
             )}
           </form.Field>
         </div>
-      </Field.FieldSet>
+      </FieldSet>
 
       <div class="grid grid-cols-2 gap-6">
         {/* 性別コード */}
         <form.Field name="gender_code">
           {(field) => (
-            <Field label="性別" error={field().state.meta.errors[0]?.toString()}>
+            <Field label="性別" error={field().state.meta.errors[0]}>
               <select
                 value={field().state.value}
-                onChange={(e) => field().handleChange(e.currentTarget.value as any)}
+                onChange={(e) =>
+                  field().handleChange(e.currentTarget.value as any)
+                }
                 class="flex h-11 w-full rounded-md border border-zinc-700 bg-zinc-800 px-3 py-2 text-zinc-100 focus:ring-2 focus:ring-zinc-500 outline-none cursor-pointer"
               >
                 <For each={GENDER_CODES}>
-                  {(code) => <option value={code} class="bg-zinc-800">{code}</option>}
+                  {(code) => (
+                    <option value={code} class="bg-zinc-800">
+                      {code}
+                    </option>
+                  )}
                 </For>
               </select>
             </Field>
@@ -141,7 +150,7 @@ export const PxRegistrationForm = () => {
               label="生年月日"
               value={field().state.value}
               onValueChange={(v) => field().handleChange(v)}
-              error={field().state.meta.errors[0]?.toString()}
+              error={field().state.meta.errors[0]}
               placeholder="和暦を選択"
             />
           )}
@@ -153,7 +162,7 @@ export const PxRegistrationForm = () => {
       <div class="grid grid-cols-2 gap-6">
         <form.Field name="tel">
           {(field) => (
-            <Field label="電話番号" error={field().state.meta.errors[0]?.toString()}>
+            <Field label="電話番号" error={field().state.meta.errors[0]}>
               <input
                 type="tel"
                 value={field().state.value}
@@ -167,7 +176,7 @@ export const PxRegistrationForm = () => {
 
         <form.Field name="email">
           {(field) => (
-            <Field label="メールアドレス" error={field().state.meta.errors[0]?.toString()}>
+            <Field label="メールアドレス" error={field().state.meta.errors[0]}>
               <input
                 type="email"
                 value={field().state.value}
@@ -184,7 +193,7 @@ export const PxRegistrationForm = () => {
         <div class="grid grid-cols-3 gap-4 items-end">
           <form.Field name="zip">
             {(field) => (
-              <Field label="郵便番号" error={field().state.meta.errors[0]?.toString()}>
+              <Field label="郵便番号" error={field().state.meta.errors[0]}>
                 <input
                   value={field().state.value}
                   onInput={(e) => field().handleChange(e.currentTarget.value)}
@@ -197,7 +206,7 @@ export const PxRegistrationForm = () => {
           <div class="col-span-2">
             <form.Field name="addr1">
               {(field) => (
-                <Field label="住所" error={field().state.meta.errors[0]?.toString()}>
+                <Field label="住所" error={field().state.meta.errors[0]}>
                   <input
                     value={field().state.value}
                     onInput={(e) => field().handleChange(e.currentTarget.value)}
@@ -212,7 +221,10 @@ export const PxRegistrationForm = () => {
 
         <form.Field name="addr2">
           {(field) => (
-            <Field label="建物名・部屋番号" error={field().state.meta.errors[0]?.toString()}>
+            <Field
+              label="建物名・部屋番号"
+              error={field().state.meta.errors[0]}
+            >
               <input
                 value={field().state.value}
                 onInput={(e) => field().handleChange(e.currentTarget.value)}
@@ -224,7 +236,9 @@ export const PxRegistrationForm = () => {
         </form.Field>
       </div>
 
-      <form.Subscribe selector={(state) => [state.canSubmit, state.isSubmitting]}>
+      <form.Subscribe
+        selector={(state) => [state.canSubmit, state.isSubmitting]}
+      >
         {(state) => (
           <Button
             type="submit"

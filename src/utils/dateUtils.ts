@@ -1,169 +1,130 @@
 // src/utils/dateUtils.ts
-import { add, isAfter } from 'date-fns';
-
-const JP_ERA_LONG_FORMATTER = new Intl.DateTimeFormat('ja-JP-u-ca-japanese', {
-  era: 'long',
-  year: '2-digit',
-  month: '2-digit',
-  day: '2-digit'
-});
-
-const JP_ERA_NARROW_FORMATTER = new Intl.DateTimeFormat('ja-JP-u-ca-japanese', {
-  era: 'narrow',
-});
+export type IsoDateString = string & { readonly __brand: unique symbol };
 
 /**
- * 日付を和暦に変換する
- * @param date Date, ISO文字列, 数値, または {year, month, day} オブジェクト
- * @returns 和暦文字列 "令和06年01月01日" または "令和元年01月01日"
- */
-export const formatToJpEra = (
-  date: Date | string | number | null | undefined,
-): string => {
-  const d = toDate(date);
-  if (!d) return '-';
-
-  return JP_ERA_LONG_FORMATTER.format(d);
-};
-
-/**
- * 和暦情報の型定義
- * - era: "令和"
- * - year: 6 (計算用数値。元年は 1)
- * - label: "令和06年" または "令和元年"
- * - isValid: 日付が正しく、和暦が取得できたか (正しく取得できたら true)
+ * 和暦情報
+ * @see {@link JpEraInfo}, {@link EraMeta}, {@link ERA_MAP}
  */
 export interface JpEraInfo {
-  era: string;  // 和暦の年号（明治・大正・昭和・平成・令和～）
-  eraNarrow:string, // 和暦の略号(M・T・S・H・R～)
-  wyear: number;  // 変換前の西暦 年
-  year: number; // 和暦での 年
-  isJp1st: boolean; // 年が「元年」かどうか？
-  isValid: boolean; // 西暦 → 和暦 変換ができたか？
+  erayear: number; // 年 (和暦 例: 8)
+  year: number; // 年 (西暦 例: 2026)
+  month: number; // 月 (1〜12)
+  day: number; // 日 (1〜31)
+  era: string; // 元号の漢字 (例: "令和")
+  eraAlpha: string; // 元号のアルファベット (例: "R")
+  eraText: string; // 漢字表記テキスト (例: "令和8")
+  eraAlphaText: string; // 略称表記テキスト (例: "R8")
 }
 
-/**
- * 日付から和暦の詳細情報（元号、年、ラベル、有効性）を取得する
- * @param arg Date, ISO文字列, 数値, または {year, month, day} オブジェクト
- * @returns JpEraInfo
- */
-export const getJpEraInfo = (
-  arg?:
-    | Date
-    | string
-    | number
-    | { year?: number; month?: number; day?: number }
-    | null,
-): JpEraInfo => {
-  const normalizedDate = toDate(arg); // 不正なら null を返し
+// 元号ごとの詳細なメタデータ定義
+interface EraMeta {
+  kanji: string; // 年号の漢字表記 例："令和"
+  alpha: string; // 年号のアルファベット表記 例:"R"
+}
 
-  const date = normalizedDate; // 
-  // 日付が不正で日付変換できなかった場合
-  if (Number.isNaN(normalizedDate)||!date){
-    return{
-      era:'', eraNarrow:'', wyear:0,year:0,isJp1st:false, isValid:false
+// Temporal の plain.era が返すキーに完全に一致させる
+const ERA_MAP: Record<string, EraMeta> = {
+  meiji: { kanji: '明治', alpha: 'M' },
+  taisho: { kanji: '大正', alpha: 'T' },
+  showa: { kanji: '昭和', alpha: 'S' },
+  heisei: { kanji: '平成', alpha: 'H' },
+  reiwa: { kanji: '令和', alpha: 'R' },
+};
+
+export const IsoDateString = {
+  /** 判定用の正規表現（YYYY-MM-DD） */
+  REGEX: /^\d{4}-\d{2}-\d{2}$/,
+
+  /**
+   * ルーズな文字列を検証し、厳格な IsoDateString 型に安全に昇格（キャスト）する
+   * @param value 検証・変換 対象の文字列
+   * @returns IsoDateString 型 (安全な日付文字列 例: "2026-05-11")
+   * @throws 存在しない日付の場合にエラーを投げます
+   */
+  parse(value: string): IsoDateString {
+    if (!this.REGEX.test(value)) {
+      throw new Error(
+        `不正な日付フォーマットです（YYYY-MM-DDを期待）: ${value}`,
+      );
     }
-  }
+    try {
+      // Temporal にパースさせて、実在する日付か最終チェック（例: 2月31日 などを弾く）
+      Temporal.PlainDate.from(value);
+      return value as IsoDateString;
+    } catch (_e) {
+      throw new Error(`存在しない日付です: ${value}`);
+    }
+  },
 
-  try {
-    // 文字列操作ではなく、Intl のパーツ取得機能で精密に抽出
-    const longParts = JP_ERA_LONG_FORMATTER.formatToParts(date);
-    const narrowParts =JP_ERA_NARROW_FORMATTER.formatToParts(date);
+  /**
+   * 与えられた文字列が、IsoDateString として妥当かどうかを判定するガード関数
+   * @param value 判定対象の文字列
+   * @returns 妥当な場合は true 、不妥当な場合は false を返します
+   * @see {@link IsoDateString.parse}
+   */
+  isValid(value: string): value is IsoDateString {
+    if (!this.REGEX.test(value)) return false;
+    try {
+      Temporal.PlainDate.from(value);
+      return true;
+    } catch {
+      return false;
+    }
+  },
 
-    const era:string = longParts.find((p) => p.type === 'era')?.value ?? '';
-    const eraNarrow:string = narrowParts.find((p)=>p.type==='era')?.value??'';
-    const yearStr:string = longParts.find((p) => p.type === 'year')?.value ?? '';
-    // "元" なら 1 に。それ以外は数字のみを抽出して数値化（NaNなら1に倒す）
-    const yearNum:number =
-      yearStr === '元' ? 1 : parseInt(yearStr.replace(/\D/g, ''), 10) || 1;
-    // 正常に変換、和暦情報を取得できた場合
-    return {  
-      era :era,
-      eraNarrow:eraNarrow,
-      year: yearNum,
-      wyear: date.getFullYear(),
-      isJp1st:yearNum===1,
-      isValid: !!normalizedDate && era !== '',
-    };
-  } catch (_e) {  // 日付不正などは不正時のeraInfoを返している
-    // Intl 未対応環境や予期せぬエラー時のフォールバック
+  /**
+   * 年・月・日(number型)から安全に IsoDateString を生成するファクトリ
+   * @param year 年 (4 桁)
+   * @param month 月 (1〜12)
+   * @param day 日 (1〜31)
+   * @returns IsoDateString 型 (安全な日付文字列 例: "2026-05-11")
+   * @see {@link Temporal.PlainDate.from}
+   * @see {@link Temporal.PlainDate.toString}
+   */
+  fromFields(year: number, month: number, day: number): IsoDateString {
+    const plain = Temporal.PlainDate.from({ year, month, day });
+    return plain.toString() as IsoDateString;
+  },
+
+  /**
+   * 現在時刻（システム時間）から本日の IsoDateString を生成
+   * @returns IsoDateString 型 (安全な日付文字列 例: "2026-05-11")
+   */
+  today(): IsoDateString {
+    return Temporal.Now.plainDateISO().toString() as IsoDateString;
+  },
+
+  /**
+   * 安全な IsoDateString から、漢字・アルファベット双方に対応した和暦情報を取得します。
+   * @param isoStr 安全な日付文字列 例: "2026-05-11"
+   * @returns 和暦情報 (元号、年、ラベル)
+   */
+  getJpEraInfo(isoStr: IsoDateString): JpEraInfo {
+    // 1. 和暦カレンダーとして Temporal オブジェクトを生成
+    const plain = Temporal.PlainDate.from(isoStr).withCalendar('japanese');
+
+    const eraKey = plain.era ?? ''; // "reiwa" などが取れる
+    const erayear = plain.eraYear ?? 1; // 8 などの数値が取れる
+
+    // 2. マップからメタデータを安全に取得（万が一のためにフォールバックを用意）
+    const meta = ERA_MAP[eraKey] ?? { kanji: '不明', alpha: '?' };
+
+    // 3. テキストの組み立て
+    const yearStr = erayear === 1 ? '元' : String(erayear);
+    const eraText = `${meta.kanji}${yearStr}`;
+
+    // アルファベット表記は、1年の時は「R1年」とするのが業務システムでは一般的なため数値を使用
+    const eraAlphaText = `${meta.alpha}${erayear}`;
+
     return {
-      era: '',
-      eraNarrow:'',
-      year: 0,
-      wyear: date.getFullYear(),
-      isJp1st:false,
-      isValid: false,
+      erayear,
+      year: plain.year,
+      month: plain.month,
+      day: plain.day,
+      era: meta.kanji,
+      eraAlpha: meta.alpha,
+      eraText,
+      eraAlphaText,
     };
-  }
-};
-
-/**
- * 警告ステータスの型
- * - 1ヶ月以上経過: critical
- * - 3週間(21日)以上経過: warn
- * - それ以外: normal
- */
-export type AlertStatus = 'normal' | 'warn' | 'critical';
-
-export interface AlertResult {
-  status: AlertStatus;
-  isCritical: boolean;
-  isWarning: boolean;
-}
-
-/**
- * 警告ステータスの取得
- * @param targetDate Date, ISO文字列, 数値, または {year, month, day} オブジェクト
- * @returns 警告ステータス AlertResult
- * - 1ヶ月以上経過: critical
- * - 3週間(21日)以上経過: warn
- * - それ以外: normal
- */
-export const getAlertStatus = (
-  targetDate: Date | string | null,
-): AlertResult => {
-  const start = toDate(targetDate);
-
-  if (!start) return { status: 'normal', isCritical: false, isWarning: false };
-
-  const today = new Date();
-
-  // 今日が判定日より1ヶ月以上経過していれば status:critical
-  const isCritical = isAfter(today, add(start, { months: 1 }));
-  // 一ヶ月以上経過おらず、3週間(21日)以上経過していれば status:warn
-  const isWarning = !isCritical && isAfter(today, add(start, { weeks: 3 }));
-
-  return {
-    status: isCritical ? 'critical' : isWarning ? 'warn' : 'normal',
-    isCritical,
-    isWarning,
-  };
-};
-
-/**
- * 引数を Date オブジェクトに変換する内部ユーティリティ
- * 不正な値（不正な文字列やNaN）が渡された場合は null を返す
- * @param arg Date, ISO文字列, 数値, または {year, month, day} オブジェクト
- * @returns Date
- */
-const toDate = (
-  arg:
-    | Date
-    | string
-    | number
-    | { year?: number; month?: number; day?: number }
-    | null
-    | undefined,
-): Date | null => {
-  if (!arg) return null;
-  if (arg instanceof Date) return Number.isNaN(arg.getTime()) ? null : arg;
-
-  if (typeof arg === 'object' && 'year' in arg) {
-    const d = new Date(arg.year ?? 0, (arg.month ?? 1) - 1, arg.day ?? 1);
-    return Number.isNaN(d.getTime()) ? null : d;
-  }
-
-  const d = new Date(arg as string | number);
-  return Number.isNaN(d.getTime()) ? null : d;
+  },
 };

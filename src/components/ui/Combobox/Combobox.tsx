@@ -3,11 +3,11 @@ import { Combobox as ArkCombo, createListCollection } from '@ark-ui/solid';
 import { ChevronDownIcon, XIcon } from 'lucide-solid';
 import { For, Show, createMemo, splitProps } from 'solid-js';
 import { Portal } from 'solid-js/web';
-import { tv, type VariantProps } from 'tailwind-variants';
+import { tv } from 'tailwind-variants';
 
 import { Field } from '../Field';
 import { fieldStyles } from '../sharedStyles';
-import type { ComboboxParts, ComboboxViewStyles } from './types';
+import type { ComboboxParts } from './types';
 
 export const comboboxStyles = tv({
   extend: fieldStyles,
@@ -23,45 +23,41 @@ export const comboboxStyles = tv({
     clearTrigger:
       'absolute right-10 text-zinc-500 hover:text-zinc-400 cursor-pointer z-10',
     positioner: 'z-50',
-    content: [
-      'bg-zinc-900 border border-zinc-800 rounded-md shadow-2xl outline-none overflow-hidden max-h-60 overflow-y-auto min-w-[var(--reference-width)]',
-      'data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0',
-    ],
-    item: 'px-3 py-2 cursor-pointer text-sm text-zinc-100 data-[highlighted]:bg-zinc-800 data-[selected]:bg-zinc-700 transition-colors',
-    loading: 'p-4 text-center text-xs text-zinc-500 animate-pulse',
+    content:
+      'bg-zinc-800 border border-zinc-700 rounded-md p-1 flex flex-col gap-1 max-h-64 overflow-y-auto min-w-[var(--reference-width)] shadow-xl',
+    item: 'flex items-center justify-between px-2.5 py-2 rounded-md cursor-pointer text-sm text-zinc-300 hover:bg-zinc-700 hover:text-zinc-100 data-[selected]:bg-zinc-700 data-[selected]:text-zinc-100 transition-colors',
+    loading: 'px-3 py-2 text-sm text-zinc-500 animate-pulse',
   },
 });
 
-type ComboboxVariantProps = VariantProps<typeof comboboxStyles>;
-
-export interface ComboboxRootProps<T>
-  extends Omit<ArkCombo.RootProps<T>, 'collection'>,
-    ComboboxParts<T>,
-    ComboboxVariantProps {
-  label?: string;
-  error?: string;
-  placeholder?: string;
-  isPending?: boolean;
+export interface ComboboxRootProps<T> extends ComboboxParts<T> {
   items: T[];
+  label: string;
+  error?: string;
+  isPending?: boolean;
+  placeholder?: string;
+  value?: string[];
+  onValueChange?: (details: { value: string[]; items: T[] }) => void;
+  onInputValueChange?: (details: { inputValue: string }) => void;
+  disabled?: boolean;
+  invalid?: boolean;
 }
 
 export const ComboboxRoot = <T,>(props: ComboboxRootProps<T>) => {
-  const [local, variantProps, rootProps] = splitProps(
-    props as ComboboxRootProps<T>,
+  const [local, variantProps, restProps] = splitProps(
+    props,
     [
+      'items',
       'label',
       'error',
-      'placeholder',
       'isPending',
       'renderItem',
       'itemToString',
       'itemToValue',
-      'items',
+      'placeholder',
     ],
-    ['disabled'],
+    ['disabled', 'invalid'],
   );
-
-  const styles = comboboxStyles(variantProps) as unknown as ComboboxViewStyles;
 
   const collection = createMemo(() =>
     createListCollection({
@@ -71,11 +67,24 @@ export const ComboboxRoot = <T,>(props: ComboboxRootProps<T>) => {
     }),
   );
 
+  /**
+   * Tailwind Variants を使用してスタイルを定義します。
+   * 拡張元 (fieldStyles) が期待している型が string | number であるため、
+   * 条件を満たす場合はリテラル文字列 'true' を型安全にアサーション (as 'true') して渡します。
+   */
+  const styles = comboboxStyles({
+    disabled: variantProps.disabled ? ('true' as 'true') : undefined,
+    invalid: variantProps.invalid ? ('true' as 'true') : undefined,
+  });
+
   return (
     <Field label={local.label} error={local.error}>
       <ArkCombo.Root
-        {...rootProps}
+        // biome-ignore lint/suspicious/noExplicitAny: SolidJS と Ark UI 間のシグナル結合による内部型ミスマッチを回避するため any へキャスト
+        {...(restProps as any)}
         collection={collection()}
+        disabled={variantProps.disabled}
+        invalid={variantProps.invalid}
         class={styles.root()}
       >
         <ArkCombo.Control class={styles.control()}>
@@ -83,8 +92,7 @@ export const ComboboxRoot = <T,>(props: ComboboxRootProps<T>) => {
             placeholder={local.placeholder}
             class={styles.input()}
           />
-          {/* value は rootProps に含まれる型として安全にアクセス可能 */}
-          <Show when={rootProps.value && rootProps.value.length > 0}>
+          <Show when={props.value && props.value.length > 0}>
             <ArkCombo.ClearTrigger class={styles.clearTrigger()}>
               <XIcon size={14} />
             </ArkCombo.ClearTrigger>

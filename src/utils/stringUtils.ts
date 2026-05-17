@@ -30,5 +30,5 @@ export const normalizeNumber = (
 ): number => {
   const normalized = normalizeString(value); // 文字列を正規化
   const num = Number.parseInt(normalized, 10); // 文字列を数値に変換
-  return isNaN(num) ? fallback : num; // 変換できない場合は fallback を返す
+  return Number.isNaN(num) ? fallback : num; // 変換できない場合は fallback を返す
 };
