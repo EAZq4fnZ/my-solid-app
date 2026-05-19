@@ -29,7 +29,7 @@ export interface StAddrInfo {
 export interface ZipProvider {
   name: string;
   fetchByZip: (zip: string) => Promise<ZipResult<StAddrInfo>>;
-  fetchSuggestions?: (input: string) => Promise<ZipResult<StAddrInfo[]>>;
+  fetchSuggestions: (input: string) => Promise<ZipResult<StAddrInfo[]>>;
 }
 
 export interface ZipResult<T> {

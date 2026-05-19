@@ -54,9 +54,12 @@ export const ZipCode = {
    *
    */
   tryFromRaw(value: string): ZipCode | null {
-    const normalized = this.normalize(value);
-    if (this.isValid(normalized)) return normalized;
-    return null;
+    if (ZipCode.isValid(value)) return value; // 妥当な場合はそのまま返す
+
+    const normalized = this.normalize(value); // 文字列を正規化
+    if (ZipCode.isValid(normalized)) return normalized; // 正規化した文字列を再検証して返す
+
+    return null; // 変換できない場合 null を返す
   },
 
   /**

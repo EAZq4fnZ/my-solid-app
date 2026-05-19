@@ -1,24 +1,21 @@
 // src/lib/zip/useZip.ts (または index.ts に追記)
 import { createResource, createSignal } from 'solid-js';
-
-import { getZipSuggestions } from './index'; // 既存の検索関数
+import { yubinbangoProvider } from './strategies/yubinbango-data';
 import type { StAddrInfo, ZipResult } from './type';
 
 export const useZip = () => {
   const [inputValue, setInputValue] = createSignal('');
 
   // 郵便番号入力（inputValue）が変わるたびに自動で getZipSuggestions を実行
-  /*const [suggestions] = createResource(inputValue, async (zip) => {
-    const cleanZip = zip.replace(/-/g, '');
-    if (cleanZip.length < 3) return []; // 3文字未満は API を叩かない
-    return await getZipSuggestions(cleanZip);
-  });*/
+
+  const sourceQuery = () => {
+    const cleanZip = inputValue().replace(/-/g, '');
+    return cleanZip.length >= 3 ? cleanZip : false; // false を返すと createResource は動かない
+  };
   const [suggestions] = createResource(
-    inputValue,
-    async (zip): Promise<ZipResult<StAddrInfo[]> | StAddrInfo[]> => {
-      const cleanZip = zip.replace(/-/g, '');
-      if (cleanZip.length < 3) return [];
-      return await getZipSuggestions(cleanZip);
+    sourceQuery,
+    async (zip): Promise<ZipResult<StAddrInfo[]>> => {
+      return await yubinbangoProvider.fetchSuggestions(zip);
     },
   );
 
@@ -26,6 +23,8 @@ export const useZip = () => {
     inputValue,
     setInputValue,
     suggestions,
+    suggestionList: (): StAddrInfo[] => suggestions()?.data ?? [],
     isPending: suggestions.loading,
+    error: () => suggestions()?.errMessage,
   };
 };
