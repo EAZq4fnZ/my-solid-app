@@ -2,7 +2,7 @@
 import { createResource, createSignal } from 'solid-js';
 
 import { getZipSuggestions } from './index'; // 既存の検索関数
-import type { StAddrInfo, ZipResult } from './types';
+import type { StAddrInfo, ZipResult } from './type';
 
 export const useZip = () => {
   const [inputValue, setInputValue] = createSignal('');

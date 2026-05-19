@@ -1,9 +1,8 @@
 // src/lib/zip/index.ts
-import { yubinbangoProvider } from './strategies/yubinbango-data';
-import type { ZipProvider } from './types';
+export { ZipCode } from '@/types/zip';
 
-export { StAddrInfo, ZipCode } from './types';
-export { useZip } from './useZip';
+import { yubinbangoProvider } from './strategies/yubinbango-data';
+import type { ZipProvider } from './type';
 
 /**
  * 将来、デジタルアドレスAPIやzipcloudを追加したら、
@@ -15,3 +14,5 @@ export const searchAddress = (zip: string) => activeProvider.fetchByZip(zip);
 
 export const getZipSuggestions = (input: string) =>
   activeProvider.fetchSuggestions?.(input) ?? Promise.resolve([]);
+
+export { useZip } from './useZip';

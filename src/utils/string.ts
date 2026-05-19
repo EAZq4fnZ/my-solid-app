@@ -1,4 +1,5 @@
-// src/utils/stringUtils.ts
+// src/utils/string.ts
+import jaconv from 'jaconv';
 /**
  * Unicode正規化(NFKC)を行い、前後の空白を除去
  * 全角英数を半角にし、ユーザーの入力揺れを最小限に抑えるために使用
@@ -32,3 +33,13 @@ export const normalizeNumber = (
   const num = Number.parseInt(normalized, 10); // 文字列を数値に変換
   return Number.isNaN(num) ? fallback : num; // 変換できない場合は fallback を返す
 };
+
+/**
+ * 全角英数・スペースおよび一部記号を半角に、半角カナを全角カナに変換する
+ * @param str
+ * @returns
+ */
+export function normalizeJapaneseInput(str: string): string {
+  // 全角英数・スペースおよび一部記号を半角、半角カナを全角に変換
+  return jaconv.normalize(str);
+}

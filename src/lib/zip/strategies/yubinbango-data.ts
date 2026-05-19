@@ -3,12 +3,8 @@ import {
   JIS_PREFECTURE_CODES,
   PREFECTURE_MASTER,
 } from '@/constants/prefectures';
-import {
-  type StAddrInfo,
-  ZipCode,
-  type ZipProvider,
-  type ZipResult,
-} from '../types';
+import { ZipCode } from '@/types/zip';
+import type { StAddrInfo, ZipProvider, ZipResult } from '../type';
 
 /**
  * yubinbango-dataの各エントリの型定義

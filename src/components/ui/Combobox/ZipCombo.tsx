@@ -2,7 +2,7 @@
 import type { ComboboxInputValueChangeDetails } from '@ark-ui/solid';
 import { splitProps } from 'solid-js';
 
-import type { StAddrInfo } from '@/lib/zip/types';
+import type { StAddrInfo } from '@/types/zip';
 import { useZip } from '@/lib/zip/useZip';
 import { ComboboxRoot } from './Combobox';
 
