@@ -1,21 +1,22 @@
-// src/lib/zip/useZip.ts (または index.ts に追記)
+// src/lib/zip/useZip.ts
 import { createResource, createSignal } from 'solid-js';
-import { yubinbangoProvider } from './strategies/yubinbango-data';
-import type { StAddrInfo, ZipResult } from './type';
+
+import type { StAddrInfo, ZipResult } from '@/types/zip';
+import { activeZipModule } from './registry'; // アクティブなレジストリから取得
 
 export const useZip = () => {
   const [inputValue, setInputValue] = createSignal('');
 
-  // 郵便番号入力（inputValue）が変わるたびに自動で getZipSuggestions を実行
-
   const sourceQuery = () => {
     const cleanZip = inputValue().replace(/-/g, '');
-    return cleanZip.length >= 3 ? cleanZip : false; // false を返すと createResource は動かない
+    return cleanZip.length >= 3 ? cleanZip : false;
   };
+
   const [suggestions] = createResource(
     sourceQuery,
     async (zip): Promise<ZipResult<StAddrInfo[]>> => {
-      return await yubinbangoProvider.fetchSuggestions(zip);
+      // 特定のプロバイダを直接呼ばず、共通のインターフェースで実行
+      return await activeZipModule.fetchSuggestions(zip);
     },
   );
 

@@ -1,139 +1,95 @@
-// src/types/date.ts
-import { Temporal } from '@js-temporal/polyfill';
+// src/types/date/type.ts
 
-import { normalizeJapaneseInput } from '@/utils/string';
-
+// Temporalとの互換性やsupabaseの日付・時刻型に対応するためのブランド型定義
 export type IsoDateString = string & { readonly __brand: unique symbol };
-
-export const IsoDateString = {
-  /** 厳格なISO 8601形式（YYYY-MM-DD）の判定 */
-  STRICT_REGEX: /^\d{4}-\d{2}-\d{2}$/,
-
-  /**
-   * ユーザーの入力（全角・ハイフンなし等）を
-   * 　半角・ハイフン付きの「yyyy-mm-dd」へクレンジングする
-   * UIの onBlur ハンドラーや string -> IsoDateString への昇格処理に使う
-   * @param value string 検証・変換 対象の文字列 例: "2026-05-11"
-   * @returns string 日付文字列 例:"2026-05-11"
-   */
-  normalize(value: string): string {
-    const normalized = normalizeJapaneseInput(value) // 全角英数を半角に変換
-      .trim()
-      .replace(/年/g, '-') // 日本語の「年」「月」を「-」に置換し、「日」を消去
-      .replace(/月/g, '-')
-      .replace(/日/g, '')
-      .replace(/[\/／－−ー－\s]/g, '-'); // 日本語の「/」「-」「空白」を「-」に置換
-
-    return /^\d{8}$/.test(normalized) // 8桁の数字ならハイフン区切りに変換
-      ? `${normalized.slice(0, 4)}-${normalized.slice(4, 6)}-${normalized.slice(6, 8)}`
-      : normalized;
-  },
-
-  /**
-   * 渡された文字列を厳格な IsoDateString 型に変換する
-   * @param value string 検証・変換 対象の文字列 例: "2026-05-11"
-   * @returns IsoDateString 型 (安全な日付文字列 例: "2026-05-11")
-   * @throws 変換できない文字列や不正な日付の場合にエラーを投げます
-   */
-  fromRaw(value: string): IsoDateString {
-    const result = this.tryFromRaw(value);
-    if (!result)
-      throw new Error('有効な日付形式で入力してください "yyyy/mm/dd"');
-    return result;
-  },
-
-  /**
-   * 渡された文字列を厳格な IsoDateString 型に変換
-   * 変換できない場合は throw new error せずに null を返す
-   * @param value 検証・変換 対象の文字列 例: "2026-05-11"
-   * @returns IsoDateString 型 (安全な日付文字列 例: "2026-05-11") または null
-   *
-   */
-  tryFromRaw(value: string): IsoDateString | null {
-    if (IsoDateString.isValid(value)) return value; // 妥当な場合はそのまま返す
-
-    const normalized = this.normalize(value); // ハイフン区切りの日付に変換して検証させる
-    try {
-      const date = Temporal.PlainDate.from(normalized); // Temporal を使い 日付型に変換を試み有効な日付かを検証
-
-      return date.toString() as IsoDateString; // 変換後の日付が妥当な場合はそのまま返す
-    } catch {
-      return null; // 変換できない場合 null を返す
-    }
-  },
-
-  /**
-   * 渡された文字列がシステム公認の IsoDateString 型（yyyy-mm-dd）を満たしているか判定する型ガード
-   */
-  isValid(value: string): value is IsoDateString {
-    return this.STRICT_REGEX.test(value);
-  },
-};
-
 export type IsoDateTimeString = string & { readonly __brand: unique symbol };
 
-export const IsoDateTimeString = {
-  /** DB（Supabase）から返ってくる代表的なISO 8601日時形式の正規表現 */
-  STRICT_REGEX:
-    /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?(?:Z|[+-]\d{2}:\d{2})$/,
+/**
+ * 定型表示用のフォーマットモード
+ */
+export enum EraFormatMode {
+  Ymd = 'Ymd', // 西暦標準(スラッシュ): YYYY/MM/DD
+  YmdDash = 'YmdDash', // 西暦(ダッシュ): YYYY-MM-DD
+  Full = 'Full', // 西暦(和暦)併記スラッシュ: YYYY(ENEY)/MM/DD
+  Abbr = 'Abbr', // 和暦略称スラッシュ: EAEY/MM/DD (例: R8/05/25)
+  Tiny = 'Tiny', // 和暦年数字のみスラッシュ: EY/MM/DD (例: 8/05/25)
+  Jp = 'Jp', // 日本語和暦フル表記: ENEY年MM月DD日 (例: 令和8年05月25日)
+}
 
-  /**
-   * ユーザーの入力（全角・ハイフンなし等）を
-   * 　半角・ハイフン付きの「yyyy-mm-dd hh:mm:ss」へクレンジングする
-   * UIの onBlur ハンドラーや string -> IsoDateTimeString への昇格処理に使う
-   * @param value string 検証・変換 対象の文字列 例: "2026-05-11 12:34:56"
-   * @returns string 日付文字列 例:"2026-05-11T12:34:56"
-   */
-  normalize(value: string): string {
-    const normalized = normalizeJapaneseInput(value)
-      .trim() // 前後の空白を除去
-      .replace(/年/g, '-') // 日本語の「年」「月」を「-」に置換し、「日」を消去
-      .replace(/月/g, '-')
-      .replace(/日/g, '')
-      .replace(/時/g, ':') // 日本語の「時」「分」を「:」に置換し、「秒」を消去
-      .replace(/分/g, ':')
-      .replace(/秒/g, '')
-      .replace(/[\/／]/g, '-') // スラッシュを「-」に
-      .replace(/\s+/g, 'T'); // 日付と時間の間のスペースを「T」に置換
+/**
+ * 共通側から各国プロバイダへ引き渡される、現地時間適用・パース済みのプレーンな数字パーツ
+ */
+export interface CalendarParts {
+  ceYear: number; // 常に西暦の4桁年 (例: 2026)
+  era: string | undefined; // Temporalが判定した生のEra識別子 (例: "reiwa")
+  eraYear: number; // 暦ごとの年 (例: 令和8年なら 8, 仏暦2569年なら 2569)
+  year: number; // カレンダー年 (通常はeraYearと同じ)
+  month: number; // 月 (1〜12)
+  day: number; // 日 (1〜31)
+  hour: number; // 時 (0〜23)
+  minute: number; // 分 (0〜59)
+  second: number; // 秒 (0〜59)
+  dayOfWeek: number; // 曜日 (0〜6)
+}
 
-    return normalized;
-  },
-  /**
-   * 渡された文字列を厳格な IsoDateTimeString 型に変換する
-   * @param value string 検証・変換 対象の文字列 例: "2026-05-11 12:34:56"
-   * @returns IsoDateString 型 (安全な日付文字列 例: "2026-05-11 12:34:56")
-   * @throws 変換できない文字列や不正な日付の場合にエラーを投げます
-   */
-  fromRaw(value: string): IsoDateTimeString {
-    const result = this.tryFromRaw(value);
-    if (!result)
-      throw new Error('有効な日時を入力してください "yyyy/mm/dd hh:mm:ss"');
-    return result;
-  },
+/**
+ * 各国プロバイダが翻訳して共通側に返す、最終表現カタログ（DTO）
+ */
+export interface EraInfo extends CalendarParts {
+  eraName: string; // 元号・紀元 "令和", "ヒジュラ暦"
+  eraAbbr: string; // 元号・紀元のアルファベット略称 "R", "AH"
+  eraYearText: string; // 元号年 "元", "02" (日本の元年対応など)
+  monthText: string; // 月 "05", "ラマダーン", "May", "閏5月"
+  monthAbbrText: string; // 月 "05", "Ram.", "May"
+  dayText: string; // 日 "25", "25th"
+  dayOfWeekText: string; // "月曜日", "Monday", "Mon"
+}
 
-  /**
-   * 渡された文字列を厳格な IsoDateTimeString 型に変換
-   * 変換できない場合は throw new error せずに null を返す
-   * @param value 検証・変換 対象の文字列 例: "2026-05-11 12:34:56"
-   * @returns IsoDateTimeString 型 (安全な日付文字列 例: "2026-05-11 12:34:56") または null
-   *
-   */
-  tryFromRaw(value: string): IsoDateTimeString | null {
-    if (IsoDateTimeString.isValid(value)) return value; // 妥当な場合はそのまま返す
-    const normalized = this.normalize(value);
-    try {
-      const datetime = Temporal.Instant.from(
-        normalized.includes('Z') || /[-+]\d{2}/.test(normalized)
-          ? normalized
-          : `${normalized}Z`,
-      );
-      return datetime.toString() as IsoDateTimeString; // 変換後の日時が妥当な場合は返す
-    } catch {
-      return null; // 変換できない場合 null を返す
-    }
-  },
+export type EraInfoFetcher = (parts: CalendarParts) => EraInfo;
 
-  isValid(value: string): value is IsoDateTimeString {
-    return this.STRICT_REGEX.test(value);
-  },
-};
+export interface ParsedDateParts {
+  year: number | null;
+  month: number | null;
+  day: number | null;
+  timeParts: (number | null)[];
+}
+
+export interface DateProviderConfig {
+  calendarId: string;
+  timezone: string;
+  parser: (text: string) => ParsedDateParts;
+  fetchEraInfo: EraInfoFetcher;
+}
+
+export interface DateTimeModule {
+  readonly timezone: string;
+  readonly calendarId: string;
+
+  /** ゆるい入力文字列を「YYYY-MM-DD」または「YYYY-MM-DDTHH:mm:ss」の標準形に整える */
+  normalize(value: string): string;
+
+  /** 安全な型昇格：失敗した場合は例外を投げず null を返す */
+  tryFromRaw(value: string, mode: 'date'): IsoDateString | null;
+  tryFromRaw(value: string, mode: 'datetime'): IsoDateTimeString | null;
+  tryFromRaw(
+    value: string,
+    mode: 'date' | 'datetime',
+  ): IsoDateString | IsoDateTimeString | null;
+
+  /** 厳格な型昇格：失敗した場合は明確な Error をスローする */
+  fromRaw(value: string, mode: 'date'): IsoDateString;
+  fromRaw(value: string, mode: 'datetime'): IsoDateTimeString;
+  fromRaw(
+    value: string,
+    mode: 'date' | 'datetime',
+  ): IsoDateString | IsoDateTimeString;
+
+  toDisplay: (isoStr: string, mode?: EraFormatMode) => string;
+  toFormat: (isoStr: string, template: string) => string;
+
+  /** 本日、現在時刻に対応する IsoDateString,IsoDateTimeString を返す */
+  today: () => IsoDateString;
+  now: () => IsoDateTimeString;
+
+  isValid: (value: string, mode: 'date' | 'datetime') => boolean;
+}

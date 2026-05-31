@@ -2,9 +2,10 @@
 import type { Type } from 'arktype';
 import { type } from 'arktype';
 
-import { GENDER_CODES } from '@/constants/gender';
 import type { Database } from '@/lib/database';
 import { ark } from '@/lib/ark';
+import { GenderRegistry } from '@/constants/gender';
+import { zipCodeSchema } from '@/lib/zip/core';
 
 // 1. DBの型を抽出
 export type PxRow = Database['public']['Tables']['px']['Row'];
@@ -16,18 +17,17 @@ export type PxRow = Database['public']['Tables']['px']['Row'];
  * 3. ベースとなるバリデーション定義（全項目）
  */
 const _pxBase = type({
-  id: 'string',
-  display_id: 'string',
-  last_name: ark.required,
-  first_name: ark.required,
-  last_kana: ark.tozenkana.and('string>=1'),
-  first_kana: ark.tozenkana.and('string>=1'),
-  //gender_code: type.enumerated(...GENDER_OPTIONS.map((opt) => opt.value)),
-  gender_code: ark.enum(GENDER_CODES),
-  birthday: ark.date,
+  id: 'string.uuid.v4', // テーブルの主キー:UUID
+  display_id: 'string>=1', // 表示用ID:strnig
+  last_name: ark.required, // 姓:string
+  first_name: ark.required, // 名:string
+  last_kana: ark.tozenkana.and('string>=1'), // 姓名(カナ):string
+  first_kana: ark.tozenkana.and('string>=1'), //名(カナ):string
+  gender_code: GenderRegistry.schema, // 性別コード constants/gender より
+  birthday: ark.date.or('""'), // 生年月日:string (空文字許容)
   tel: ark.tel.and('string>=1'), // 必須項目として最低限の長さを要求
-  email: ark.email,
-  zip: ark.zip,
+  email: 'string.email | null | undefined',
+  zip: zipCodeSchema.or('""'), // 郵便番号 constants/zip から取得 (空文字許容)
   addr1: ark.required,
   addr2: ark.optional,
   job: ark.optional,
@@ -85,7 +85,7 @@ export const pxSearchValidators = createValidator(pxSearchSchema); // 検索用
 /**
  * 7. 初期値定義
  */
-export const defaultPxValues: PxInsert = {
+export const defaultPxValues = {
   last_name: '',
   first_name: '',
   last_kana: '',

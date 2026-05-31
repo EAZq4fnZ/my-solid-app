@@ -1,21 +1,17 @@
 // src/lib/zip/index.ts
+import { zipRegistry } from './registry';
 
-// 実際のロジック（サービス関数）
-import { yubinbangoProvider } from './strategies/yubinbango-data';
-import type { ZipProvider } from './type';
+export { zipUtils, zipCodeSchema } from './core';
+export { zipRegistry } from './registry';
+export { useZip } from './useZip';
 
-export { ZipCode } from '@/types/zip'; // コアとなるドメイン型の再エクスポート
-export type { StAddrInfo, ZipProvider, ZipResult } from './type'; // この機能モジュールが扱う住所やプロバイダーの型を一括提供
-export { useZip } from './useZip'; // SolidJS用のカスタムHooks
+export type { StAddrInfo, ZipResult, ZipModule } from '@/types/zip';
 
-/**
- * 将来、デジタルアドレスAPIやzipcloud を@/lib/zip/strategies に追加したら、
- * ここで読み込んで activeProvider を差し替える
- */
-const activeProvider: ZipProvider = yubinbangoProvider;
+/** アクティブな日付モジュール */
+export const activeZipModule = zipRegistry.yubinbango;
 
-export const searchAddress = (zip: string) => activeProvider.fetchByZip(zip);
+// 既存のロジックをアクティブなモジュール経由に一新
+export const searchAddress = (zip: string) => activeZipModule.fetchByZip(zip);
 
 export const getZipSuggestions = (input: string) =>
-  activeProvider.fetchSuggestions?.(input) ??
-  Promise.resolve({ success: true, data: [], errMessage: null });
+  activeZipModule.fetchSuggestions(input);
