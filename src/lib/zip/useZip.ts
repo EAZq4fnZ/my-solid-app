@@ -2,7 +2,7 @@
 import { createResource, createSignal } from 'solid-js';
 
 import type { StAddrInfo, ZipResult } from '@/types/zip';
-import { activeZipModule } from './registry'; // アクティブなレジストリから取得
+import { activeZipModule } from '.';
 
 export const useZip = () => {
   const [inputValue, setInputValue] = createSignal('');

@@ -24,6 +24,15 @@ export const getToday = (): IsoDateString => activeDateModule.today();
 
 export const getNow = (): IsoDateTimeString => activeDateModule.now();
 
+/**
+ * 指定された日付文字列を、任意のカスタムテンプレート形式に変形します。
+ * @param isoStr - パース可能な日付文字列
+ * @param template - 置換テンプレート (例: 'YYYY', 'ENEYT')
+ */
+export const formatCustom = (isoStr: string, template: string): string => {
+  return activeDateModule.toFormat(isoStr, template);
+};
+
 /** 任意の文字列が正しい日付型(IsoDateString)にパース可能か検証・変換するユーティリティ */
 export const dateUtils = {
   isValid: (value: string): boolean => activeDateModule.isValid(value, 'date'),
