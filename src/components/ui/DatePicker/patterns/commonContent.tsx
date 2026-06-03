@@ -39,20 +39,21 @@ export const renderCommonContent = (
 
         <ArkDate.Table class={styles.table()}>
           <ArkDate.TableHead>
-            <ArkDate.TableRow class="flex">
+            <ArkDate.TableRow>
               <Index each={api.weekDays}>
-                {(day) => (
+                {(weekDay) => (
                   <ArkDate.TableHeader class={styles.tableHeader()}>
-                    {day().short}
+                    {weekDay().short}
                   </ArkDate.TableHeader>
                 )}
               </Index>
             </ArkDate.TableRow>
           </ArkDate.TableHead>
+
           <ArkDate.TableBody>
             <Index each={api.weeks}>
               {(week) => (
-                <ArkDate.TableRow class="flex">
+                <ArkDate.TableRow>
                   <Index each={week()}>
                     {(day) => (
                       <ArkDate.TableCell value={day()}>
@@ -85,9 +86,9 @@ export const renderCommonContent = (
 
         <ArkDate.Table class={styles.table()}>
           <ArkDate.TableBody>
-            <Index each={api.getMonthsGrid({ columns: 4, format: 'short' })}>
+            <Index each={api.getMonthsGrid({ columns: 3, format: 'short' })}>
               {(months) => (
-                <ArkDate.TableRow class="flex">
+                <ArkDate.TableRow class="flex w-full justify-around">
                   <Index each={months()}>
                     {(month) => (
                       <ArkDate.TableCell value={month().value}>
@@ -122,7 +123,7 @@ export const renderCommonContent = (
           <ArkDate.TableBody>
             <Index each={api.getYearsGrid({ columns: 4 })}>
               {(years) => (
-                <ArkDate.TableRow class="flex">
+                <ArkDate.TableRow class="flex w-full justify-around">
                   <Index each={years()}>
                     {(year) => (
                       <ArkDate.TableCell value={year().value}>

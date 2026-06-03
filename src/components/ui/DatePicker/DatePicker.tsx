@@ -1,6 +1,6 @@
 // src/components/ui/DatePicker/DatePicker.tsx
 import { DatePicker as ArkDate } from '@ark-ui/solid';
-import { parseDate } from '@internationalized/date';
+import { type DateValue, parseDate } from '@internationalized/date';
 import { splitProps } from 'solid-js';
 import { Portal } from 'solid-js/web';
 import { tv, type VariantProps } from 'tailwind-variants';
@@ -40,36 +40,40 @@ export const datePickerStyles = tv({
   },
 });
 
-type DatePickerVariantProps = VariantProps<typeof datePickerStyles>;
+type DatePickerVariants = VariantProps<typeof datePickerStyles>;
 
-export interface DatePickerRootProps
-  extends Omit<ArkDate.RootProps, 'value' | 'onValueChange'>,
-    DatePickerVariantProps,
-    DatePickerParts {
+// 🌟 修正ポイント1: Omit を使って ArkDate.RootProps から競合する 'value' などの定義を綺麗に除去し、
+// プログラミングで扱いやすい string | null 形式として再定義・結合します。
+interface DatePickerProps
+  extends Omit<
+      ArkDate.RootProps,
+      'value' | 'format' | 'parse' | 'onValueChange'
+    >,
+    DatePickerVariants {
   label?: string;
   helperText?: string;
   error?: string;
   placeholder?: string;
-  value?: string;
-  onValueChange?: (v: string) => void;
+  value?: string | null;
+  onValueChange?: (value: string | null) => void;
+  format?: (value: DateValue) => string;
+  parse?: (text: string) => DateValue | undefined;
+  parts: DatePickerParts;
 }
 
-/**
- * 共通基底コンポーネント
- */
-export const DatePickerRoot = (props: DatePickerRootProps) => {
+export const DatePicker = (props: DatePickerProps) => {
   const [local, rootProps] = splitProps(props, [
     'label',
     'helperText',
     'error',
     'placeholder',
-    'renderControl',
-    'renderContent',
+    'parts',
     'value',
     'onValueChange',
+    'format',
+    'parse',
   ]);
 
-  // styles を DatePickerViewStyles としてキャストして型安全にする
   const styles = datePickerStyles() as unknown as DatePickerViewStyles;
 
   return (
@@ -80,13 +84,25 @@ export const DatePickerRoot = (props: DatePickerRootProps) => {
     >
       <ArkDate.Root
         {...rootProps}
+        // 文字列の YYYY-MM-DD から Ark UI 専用の DateValue[] 配列構造へ変換
         value={local.value ? [parseDate(local.value)] : []}
-        onValueChange={(details) =>
-          local.onValueChange?.(details.valueAsString[0])
+        onValueChange={(details) => {
+          const firstDate = details.value[0];
+          if (!firstDate) {
+            local.onValueChange?.(null);
+            return;
+          }
+          const isoString = `${firstDate.year}-${String(firstDate.month).padStart(2, '0')}-${String(firstDate.day).padStart(2, '0')}`;
+          local.onValueChange?.(isoString);
+        }}
+        // デフォルトの西暦フォーマッタも DateValue 型で厳密に受け止める
+        format={
+          local.format ??
+          ((d: DateValue) =>
+            `${d.year}-${String(d.month).padStart(2, '0')}-${String(d.day).padStart(2, '0')}`)
         }
-        format={(d) =>
-          `${d.year}-${String(d.month).padStart(2, '0')}-${String(d.day).padStart(2, '0')}`
-        }
+        // 外から渡される parse ロジック、またはデフォルト（undefined）をそのままバインド
+        parse={local.parse}
         positioning={{ gutter: 4 }}
       >
         <ArkDate.Context>
@@ -94,14 +110,14 @@ export const DatePickerRoot = (props: DatePickerRootProps) => {
             const currentApi = api() as DatePickerApiObject;
             return (
               <div class="w-full">
-                {local.renderControl(currentApi, styles, {
+                {local.parts.renderControl(currentApi, styles, {
                   placeholder: local.placeholder,
                 })}
 
                 <Portal>
                   <ArkDate.Positioner>
                     <ArkDate.Content class={styles.content()}>
-                      {local.renderContent(currentApi, styles)}
+                      {local.parts.renderContent(currentApi, styles)}
                     </ArkDate.Content>
                   </ArkDate.Positioner>
                 </Portal>

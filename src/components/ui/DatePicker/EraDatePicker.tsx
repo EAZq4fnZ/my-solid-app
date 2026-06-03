@@ -1,62 +1,59 @@
 // src/components/ui/DatePicker/EraDatePicker.tsx
-import { type JSX, Show, createMemo } from 'solid-js';
+import { parseDate } from '@internationalized/date';
 
 import type { IsoDateString } from '@/types/date';
 import { dateUtils, formatCustom } from '@/lib/date';
 
+import { DatePicker } from './DatePicker';
+import { renderCommonContent } from './patterns/commonContent';
+import { renderEraControl, renderEraRangeText } from './patterns/eraParts';
+
 interface EraDatePickerProps {
   value: IsoDateString | null;
   onDateChange: (value: IsoDateString | null) => void;
+  label?: string;
+  error?: string;
+  placeholder?: string;
 }
 
 export const EraDatePicker = (props: EraDatePickerProps) => {
-  // アクセシビリティ（Label紐付け）のためのユニークなID
-  const inputId = 'era-date-picker-input';
-
-  // 選択された日付から和暦情報を計算
-  const displayEraText = createMemo(() => {
-    const currentValidDate = props.value;
-    if (!currentValidDate) return null;
-    return formatCustom(currentValidDate, 'YYYY(ENEYT)/MM/DD'); // "2026-05-17" -> "2026(令和08)/05/17"
-  });
-
-  // 日付が変更された時のハンドラー
-  const handleRawChange: JSX.EventHandler<HTMLInputElement, Event> = (e) => {
-    const inputValue = e.currentTarget.value;
-    if (dateUtils.isValid(inputValue)) {
-      props.onDateChange(inputValue as IsoDateString);
-    } else {
-      props.onDateChange(null);
-    }
-  };
-
   return (
-    <div class="flex flex-col gap-2 p-4 rounded-lg border border-zinc-800 bg-zinc-950">
-      <label for={inputId} class="text-sm font-medium text-zinc-400">
-        対象年月日
-      </label>
-
-      {/* 画面のヘッダー表示部分 */}
-      <div class="h-8 flex items-center text-lg font-bold text-zinc-100 font-mono">
-        <Show
-          when={displayEraText()}
-          fallback={
-            <span class="text-zinc-600 text-sm font-normal">
-              日付が選択されていません
-            </span>
+    <DatePicker
+      label={props.label}
+      error={props.error}
+      placeholder={props.placeholder ?? '日付を選択 (例: 令和...)'}
+      value={props.value}
+      // 🌟 修正ポイント1: 汎用的な string | null から、厳格な IsoDateString | null へ安全に型を格上げして通知する
+      onValueChange={(isoValue) => {
+        props.onDateChange(isoValue as IsoDateString | null);
+      }}
+      // [Displayへの変換]: カレンダーが保持している西暦データを、インプット上では「2026(令和08)/06/03」の和暦に化けさせる
+      format={(d) => {
+        if (!d) return '';
+        const iso = `${d.year}-${String(d.month).padStart(2, '0')}-${String(d.day).padStart(2, '0')}`;
+        return formatCustom(iso, 'YYYY(ENEYT)/MM/DD');
+      }}
+      // 🌟 修正ポイント2: 手入力されたテキストを parseDate を使って Ark UI が理解できる DateValue オブジェクトに変換して戻す
+      parse={(text) => {
+        const parsedStr = dateUtils.tryFromRaw(text); // 例: "2026-06-03" の文字列が返る
+        if (parsedStr && dateUtils.isValid(parsedStr)) {
+          try {
+            return parseDate(parsedStr); // 👈 ここで正規の DateValue オブジェクトに変換！
+          } catch (_) {
+            return undefined;
           }
-        >
-          {(text) => <span>{text()}</span>}
-        </Show>
-      </div>
-
-      <input
-        id={inputId}
-        type="date"
-        value={props.value ?? ''}
-        onChange={handleRawChange}
-        class="h-11 rounded-md border border-zinc-800 bg-zinc-900 px-3 text-sm text-zinc-100 focus:border-zinc-500 focus:outline-none color-scheme-dark"
-      />
-    </div>
+        }
+        return undefined;
+      }}
+      // 既存の高度なDIパーツを注入
+      parts={{
+        renderControl: renderEraControl,
+        renderContent: (api, styles) =>
+          renderCommonContent(api, styles, {
+            renderRangeText: renderEraRangeText,
+          }),
+        renderRangeText: renderEraRangeText,
+      }}
+    />
   );
 };

@@ -2,7 +2,7 @@
 import { type JSX, Show, splitProps } from 'solid-js';
 import { tv, type VariantProps } from 'tailwind-variants';
 
-import { fieldStyles } from './sharedStyles';
+import { fieldStyles } from '../sharedStyles';
 
 // 1. スタイル定義: fieldStyles を継承
 export const inputStyles = tv({

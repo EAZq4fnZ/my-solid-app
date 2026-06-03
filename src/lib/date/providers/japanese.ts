@@ -115,23 +115,36 @@ export const parseJapaneseRawText = (text: string): ParsedDateParts => {
 export const fetchJapaneseEraInfo = (parts: CalendarParts): EraInfo => {
   const jpEra = parts.era ? jpEraMap[parts.era] : undefined;
 
-  // 元号付 & 1年なら「元」年、それ以外は2桁パディング
-  const EYT =
-    parts.eraYear === 1 && jpEra
-      ? '元'
-      : String(parts.eraYear).padStart(2, '0');
-  const MT = String(parts.month).padStart(2, '0');
-  const DT = String(parts.day).padStart(2, '0');
-  const DWT = JP_WEEK_DAYS[parts.dayOfWeek]?.abbr ?? '';
+  const eraYear = parts.year;
 
+  const ceYear = (() => {
+    if (!parts.era) return eraYear; // 元号がない -> 西暦として扱う
+    const baseYear = ERA_START_YEARS[parts.era];
+    return baseYear !== undefined ? baseYear + eraYear : eraYear;
+  })();
+
+  const month = parts.month;
+  const monthText = String(month).padStart(2, '0');
+
+  const day = parts.day;
+
+  const dayOfWeek =
+    parts.dayOfWeek > -1 && parts.dayOfWeek > 8 ? parts.dayOfWeek : 0;
+
+  // 2026年8月25日(火曜日) ->
   return {
-    ...parts,
-    eraName: jpEra?.eraName ?? '',
-    eraAbbr: jpEra?.eraAbbr ?? '',
-    eraYearText: EYT,
-    monthText: MT,
-    monthAbbrText: MT,
-    dayText: DT,
-    dayOfWeekText: DWT,
+    ceYear, // 2026
+    eraYear, // 8
+    eraYearText:
+      eraYear === 1 && jpEra ? '元' : String(eraYear).padStart(2, '0'), // "08"
+    eraName: jpEra?.eraName ?? '', // "令和"
+    eraAbbr: jpEra?.eraAbbr ?? '', // "R"
+    month: month, // 8
+    monthText: monthText, // "08"
+    monthAbbrText: monthText, // "8"
+    day: day, // 25
+    dayText: String(day).padStart(2, '0'), // "25"
+    dayOfWeek: dayOfWeek, // 2
+    dayOfWeekText: JP_WEEK_DAYS[dayOfWeek].abbr, // "火"
   } as EraInfo;
 };
