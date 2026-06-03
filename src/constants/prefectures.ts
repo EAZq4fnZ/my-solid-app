@@ -53,7 +53,7 @@ const PREFECTURE_RAW_MASTER = {
 } as const;
 
 // ファクトリーを使ってすべての資産を自動生成
-export const PrefectureRegistry = createMasterRegistry(PREFECTURE_RAW_MASTER);
+export const Prefecture = createMasterRegistry(PREFECTURE_RAW_MASTER);
 
 // 型だけは個別に名前をつけてエクスポート（外部から使いやすくするため）
-export type PrefectureCode = keyof typeof PREFECTURE_RAW_MASTER;
+export type PrefectureCode = (typeof Prefecture.codes)[number];

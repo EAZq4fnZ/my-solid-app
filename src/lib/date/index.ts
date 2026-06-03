@@ -36,40 +36,29 @@ export const formatCustom = (isoStr: string, template: string): string => {
 /** 任意の文字列が正しい日付型(IsoDateString)にパース可能か検証・変換するユーティリティ */
 export const dateUtils = {
   isValid: (value: string): boolean => activeDateModule.isValid(value, 'date'),
-
   tryFromRaw: (value: string): IsoDateString | null =>
     activeDateModule.tryFromRaw(value, 'date'),
 };
 
-/**
- * 任意の文字列が正しい日時型(IsoDateTimeString)にパース可能か検証・変換するユーティリティ
- */
+/** 任意の文字列が正しい日時型(IsoDateTimeString)にパース可能か検証・変換するユーティリティ */
 export const dateTimeUtils = {
   isValid: (value: string): boolean =>
     activeDateModule.isValid(value, 'datetime'),
-
   tryFromRaw: (value: string): IsoDateTimeString | null =>
     activeDateModule.tryFromRaw(value, 'datetime'),
 };
 
 // --- ArkType パイプラインスキーマ（TanStack Formなどのバリデーション用） ---
+/** ユーザーの自由な入力を、和暦も含めて安全に `IsoDateString` ブランド型へ昇格させるスキーマ */
+export const isoDateSchema = type('string').pipe((s, ctx) => {
+  const result = dateUtils.tryFromRaw(s);
+  if(result) return result as IsoDateString;
+  return ctx.error('正しい日付を入力してください(例: 2026/05/31, 令和8年5月31日)');
+});
 
-/**
- * ユーザーの自由な入力を、和暦も含めて安全に `IsoDateString` ブランド型へ昇格させるスキーマ
- */
-export const isoDateSchema = type([
-  'string',
-  '=>',
-  (s) =>
-    dateUtils.tryFromRaw(s) ??
-    '正しい日付を入力してください(例: 2026/05/31, 令和8年5月31日)',
-]);
-
-/**
- * ユーザーの自由な入力を、安全に `IsoDateTimeString` ブランド型へ昇格させるスキーマ
- */
-export const isoDateTimeSchema = type([
-  'string',
-  '=>',
-  (s) => dateTimeUtils.tryFromRaw(s) ?? '正しい日時を入力してください',
-]);
+/** ユーザーの自由な入力を、安全に `IsoDateTimeString` ブランド型へ昇格させるスキーマ */
+export const isoDateTimeSchema = type('string').pipe((s, ctx) => {
+  const result = dateTimeUtils.tryFromRaw(s);
+  if(result) return result as IsoDateTimeString;
+  return ctx.error('正しい日時を入力してください(例: 2026/05/31 14:30, 令和8年5月31日 14時30分)');
+});

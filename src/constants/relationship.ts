@@ -13,9 +13,9 @@ const RELATIONSHIP_RAW_MASTER = {
 } as const;
 
 // ファクトリーを使ってすべての資産を自動生成
-export const RelationshipRegistry = createMasterRegistry(
+export const Relationship = createMasterRegistry(
   RELATIONSHIP_RAW_MASTER,
 );
 
 // 型だけは個別に名前をつけてエクスポート（外部から使いやすくするため）
-export type RelationshipType = keyof typeof RELATIONSHIP_RAW_MASTER;
+export type RelationshipType = (typeof Relationship.codes)[number];
