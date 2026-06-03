@@ -11,7 +11,9 @@ const BLOOD_TYPE_RAW_MASTER = {
 } as const;
 
 // ファクトリーを使ってすべての資産を自動生成
-export const BloodTypeRegistry = createMasterRegistry(BLOOD_TYPE_RAW_MASTER);
+export const BloodType = createMasterRegistry(BLOOD_TYPE_RAW_MASTER);
 
 // 型だけは個別に名前をつけてエクスポート（外部から使いやすくするため）
-export type BloodType = keyof typeof BLOOD_TYPE_RAW_MASTER;
+/** 血液型 */
+//export type BloodType = keyof typeof BLOOD_TYPE_RAW_MASTER;
+export type BloodTypeCode = (typeof BloodType.codes)[number];

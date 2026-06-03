@@ -50,15 +50,12 @@ export const zipUtils = {
   },
 };
 
-/**
- * ArkType用の郵便番号スキーマ（pxSchema等で大活躍するもの）
- * 配列パイプラインの統一構文に変更しています
- */
-export const zipCodeSchema = type([
-  'string',
-  '=>',
-  (s) => zipUtils.tryFromRaw(s) ?? '正しい郵便番号(123-4567)',
-]);
+/** ArkType用の郵便番号スキーマ（pxSchema等で大活躍するもの）*/
+export const zipCodeSchema = type('string').pipe((s, ctx) => {
+  const result = zipUtils.tryFromRaw(s);
+  if(result) return result as ZipCode;
+  return ctx.error('正しい郵便番号の形式で入力してください(123-4567)');
+});
 
 export function createZipModule(config: ZipModuleConfig): ZipModule {
   const fetchByZip = async (zip: string): Promise<ZipResult<StAddrInfo>> => {

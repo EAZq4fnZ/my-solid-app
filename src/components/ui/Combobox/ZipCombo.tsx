@@ -1,6 +1,6 @@
 // src/components/ui/Combobox/ZipCombo.tsx
 import type { ComboboxInputValueChangeDetails } from '@ark-ui/solid';
-import { splitProps } from 'solid-js';
+import { createMemo, splitProps } from 'solid-js';
 
 import type { StAddrInfo } from '@/types/zip';
 import { useZip } from '@/lib/zip/useZip';
@@ -26,14 +26,14 @@ export const ZipCombo = (props: ZipComboProps) => {
 
   const { setInputValue, suggestions, isPending } = useZip();
 
-  const getSafeItems = (): StAddrInfo[] => {
-    const res = suggestions();
-    if (!res) return [];
-    if (typeof res === 'object' && 'success' in res) {
-      return res.success && Array.isArray(res.data) ? res.data : [];
-    }
-    return Array.isArray(res) ? res : [];
-  };
+  const safeItems = createMemo((): StAddrInfo[] => {
+  const res = suggestions(); // 内部で suggestions() を呼んでいるため、依存関係が正しく追従される
+  if (!res) return [];
+  if (typeof res === 'object' && 'success' in res) {
+    return res.success && Array.isArray(res.data) ? res.data : [];
+  }
+  return Array.isArray(res) ? res : [];
+});
 
   const handleSelectionChange = (details: { items: StAddrInfo[] }) => {
     const selectedItem = details.items[0];
@@ -52,7 +52,7 @@ export const ZipCombo = (props: ZipComboProps) => {
           label={local.label}
           placeholder={local.placeholder ?? '000-0000'}
           error={field.state.meta.errors[0]?.toString()}
-          items={getSafeItems()}
+          items={safeItems()}
           isPending={isPending}
           onInputValueChange={(d: ComboboxInputValueChangeDetails) =>
             setInputValue(d.inputValue)
