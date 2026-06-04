@@ -63,19 +63,19 @@ export const parseJapaneseRawText = (text: string): ParsedDateParts => {
     return { year: null, month: null, day: null, timeParts: [] };
   }
 
-  // 既存のjaconvベースの共通ユーティリティで一括クレンジング（トリム＆全角半角の標準化）
-  let normalized = normalizeJapaneseInput(text);
+  const normalized = (() => {
+    const raw = normalizeJapaneseInput(text); // 全角英数 -> 半角 に正規化
+    return raw
+      .replace(/[年月日]/g, '/') // 「年・月・日」をスラッシュに
+      .replace(/[時分]/g, ':')   // 「時・分」をコロンに
+      .replace(/秒/g, '');       // 「秒」は削除
+  })();
 
-  // 「元年」を「1年」に安全に置換
-  normalized = normalized.replace(/元年/g, '1');
-
-  // 先頭の元号テキスト・記号を切り出す (例: "R8.5.25" ➔ "R" と "8.5.25")
-  const eraRegex = /^(令和|平成|昭和|大正|明治|[RHSMT])/i;
-  const eraMatch = normalized.match(eraRegex);
-
-  // 3. 数字の部分だけを抽出して数値配列化
-  const digitsOnly = normalized.replace(eraRegex, '');
-  const nums = digitsOnly.split(/\D+/).filter(Boolean).map(Number);
+  // 元号の文字を検出（令和, R など）して、どの元号かを特定する
+  const eraMatch = normalized.match(/^(令和|平成|昭和|大正|明治|R|H|S|T|M)/i);
+  
+  // 区切り記号（/ や : やスペース）で数字を綺麗に分離
+  const nums = normalized.split(/\D+/).filter(Boolean).map(Number);
 
   const rawYear = nums[0] ?? null;
   const month = nums[1] ?? null;
