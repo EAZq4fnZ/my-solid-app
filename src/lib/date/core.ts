@@ -118,8 +118,8 @@ export function createDateTimeModule(
         }).toString() as IsoDateString;
       }
 
-      const rawHour = timeParts[0];
-      const rawMinute = timeParts[1];
+      const rawHour = timeParts[0] as number;;
+      const rawMinute = timeParts[1] as number;;
       const rawSecond = timeParts[2];
 
       if (rawHour == null || rawMinute == null) {
