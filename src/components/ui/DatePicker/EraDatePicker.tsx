@@ -1,5 +1,6 @@
 // src/components/ui/DatePicker/EraDatePicker.tsx
 import { parseDate } from '@internationalized/date';
+import { createSignal } from 'solid-js';
 
 import type { IsoDateString } from '@/types/date';
 import { dateUtils, formatCustom } from '@/lib/date';
@@ -17,43 +18,62 @@ interface EraDatePickerProps {
 }
 
 export const EraDatePicker = (props: EraDatePickerProps) => {
+  // 入力フィールドが現在フォーカス（編集）されているかを管理するフラグ
+  const [isFocused, setIsFocused] = createSignal(false);
+
   return (
-    <DatePicker
-      label={props.label}
-      error={props.error}
-      placeholder={props.placeholder ?? '日付を選択 (例: 令和...)'}
-      value={props.value}
-      // 🌟 修正ポイント1: 汎用的な string | null から、厳格な IsoDateString | null へ安全に型を格上げして通知する
-      onValueChange={(isoValue) => {
-        props.onDateChange(isoValue as IsoDateString | null);
-      }}
-      // [Displayへの変換]: カレンダーが保持している西暦データを、インプット上では「2026(令和08)/06/03」の和暦に化けさせる
-      format={(d) => {
-        if (!d) return '';
-        const iso = `${d.year}-${String(d.month).padStart(2, '0')}-${String(d.day).padStart(2, '0')}`;
-        return formatCustom(iso, 'YYYY(ENEYT)/MM/DD');
-      }}
-      // 🌟 修正ポイント2: 手入力されたテキストを parseDate を使って Ark UI が理解できる DateValue オブジェクトに変換して戻す
-      parse={(text) => {
-        const parsedStr = dateUtils.tryFromRaw(text); // 例: "2026-06-03" の文字列が返る
-        if (parsedStr && dateUtils.isValid(parsedStr)) {
-          try {
-            return parseDate(parsedStr); // 👈 ここで正規の DateValue オブジェクトに変換！
-          } catch (_) {
-            return undefined;
+    <div
+      // コンポーネントのエリアにフォーカスが入ったか外れたかをシームレスにキャッチする
+      onFocusIn={() => setIsFocused(true)}
+      onFocusOut={() => setIsFocused(false)}
+    >
+      <DatePicker
+        label={props.label}
+        error={props.error}
+        placeholder={props.placeholder ?? '日付を選択 (例: 令和...)'}
+        value={props.value}
+        
+        // DB登録時: 親へは常に不純物なしの "2026-06-04"（IsoDateString）を渡す
+        onValueChange={(isoValue) => {
+          props.onDateChange(isoValue as IsoDateString | null);
+        }}
+
+        // 表示の切り替えロジック
+        format={(d) => {
+          if (!d) return '';
+          // Ark UIの内部日付(DateValue)を一度ISO標準文字に直す
+          const iso = `${d.year}-${String(d.month).padStart(2, '0')}-${String(d.day).padStart(2, '0')}`;
+          
+          if (isFocused()) {
+            // フォーカス時: 2026/06/04
+            return formatCustom(iso, 'YYYY/MM/DD');
+          } else {
+            // フォーカス外: 2026(令和08)/06/04
+            return formatCustom(iso, 'YYYY(ENEYT)/MM/DD');
           }
-        }
-        return undefined;
-      }}
-      // 既存の高度なDIパーツを注入
-      parts={{
-        renderControl: renderEraControl,
-        renderContent: (api, styles) =>
-          renderCommonContent(api, styles, {
-            renderRangeText: renderEraRangeText,
-          }),
-        renderRangeText: renderEraRangeText,
-      }}
-    />
+        }}
+
+        // ユーザーの手入力を安全にパースする既存の防衛ロジック（そのまま維持）
+        parse={(text) => {
+          const parsedStr = dateUtils.tryFromRaw(text);
+          if (parsedStr && dateUtils.isValid(parsedStr)) {
+            try {
+              return parseDate(parsedStr);
+            } catch {
+              return undefined;
+            }
+          }
+          return undefined;
+        }}
+        parts={{
+          renderControl: renderEraControl,
+          renderContent: (api, styles) =>
+            renderCommonContent(api, styles, {
+              renderRangeText: renderEraRangeText,
+            }),
+          renderRangeText: renderEraRangeText,
+        }}
+      />
+    </div>
   );
 };
