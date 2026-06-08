@@ -1,18 +1,25 @@
 // src/components/ui/DatePicker/DatePicker.tsx
-import { DatePicker as ArkDate } from '@ark-ui/solid';
+import {
+  DateInput as ArkDateInput,
+  DatePicker as ArkDatePicker,
+  useDateInput,
+  useDatePicker,
+} from '@ark-ui/solid';
 import { type DateValue, parseDate } from '@internationalized/date';
+
 import { splitProps } from 'solid-js';
 import { Portal } from 'solid-js/web';
 import { tv, type VariantProps } from 'tailwind-variants';
 
 import { Field } from '../Field';
 import { fieldStyles } from '../sharedStyles';
-// DatePickerViewStyles を追加でインポート
+
 import type {
+  DateInputApiObject,
   DatePickerApiObject,
   DatePickerParts,
   DatePickerViewStyles,
-} from './types';
+} from './type';
 
 export const datePickerStyles = tv({
   extend: fieldStyles,
@@ -34,19 +41,22 @@ export const datePickerStyles = tv({
       'data-[weekend=sat]:text-blue-400',
       'data-[disabled]:text-zinc-700 data-[disabled]:cursor-not-allowed data-[disabled]:hover:bg-transparent data-[disabled]:opacity-50',
     ],
-    inputGroup: 'relative flex items-center w-full',
+    inputGroup:
+      'relative flex items-center w-full border border-zinc-800 rounded-md bg-zinc-950 px-3 py-2 focus-within:border-zinc-400 transition-colors',
+    inputField:
+      'flex items-center gap-1 text-sm text-zinc-100 w-full outline-none',
+    segment:
+      'px-0.5 rounded hover:bg-zinc-800 focus:bg-zinc-100 focus:text-zinc-950 outline-none data-[placeholder]:text-zinc-500',
     inputIcon:
-      'absolute right-3 text-zinc-500 hover:text-zinc-100 cursor-pointer z-10',
+      'text-zinc-500 hover:text-zinc-100 cursor-pointer ml-2 z-10 flex items-center',
   },
 });
 
 type DatePickerVariants = VariantProps<typeof datePickerStyles>;
 
-// 🌟 修正ポイント1: Omit を使って ArkDate.RootProps から競合する 'value' などの定義を綺麗に除去し、
-// プログラミングで扱いやすい string | null 形式として再定義・結合します。
 interface DatePickerProps
   extends Omit<
-      ArkDate.RootProps,
+      ArkDatePicker.RootProps,
       'value' | 'format' | 'parse' | 'onValueChange'
     >,
     DatePickerVariants {
@@ -54,6 +64,7 @@ interface DatePickerProps
   helperText?: string;
   error?: string;
   placeholder?: string;
+  editable?: boolean;
   value?: string | null;
   onValueChange?: (value: string | null) => void;
   format?: (value: DateValue) => string;
@@ -67,6 +78,7 @@ export const DatePicker = (props: DatePickerProps) => {
     'helperText',
     'error',
     'placeholder',
+    'editable',
     'parts',
     'value',
     'onValueChange',
@@ -76,56 +88,78 @@ export const DatePicker = (props: DatePickerProps) => {
 
   const styles = datePickerStyles() as unknown as DatePickerViewStyles;
 
+  const currentSelection = () => (local.value ? [parseDate(local.value)] : []);
+
+  const handleSelectionChange = (values: DateValue[]) => {
+    const firstDate = values[0];
+    if (!firstDate) {
+      local.onValueChange?.(null);
+      return;
+    }
+    const isoString = `${firstDate.year}-${String(firstDate.month).padStart(2, '0')}-${String(firstDate.day).padStart(2, '0')}`;
+    local.onValueChange?.(isoString);
+  };
+
+  const datePicker = useDatePicker(() => ({
+    ...rootProps,
+    value: currentSelection(),
+    onValueChange: (details) => handleSelectionChange(details.value),
+    positioning: { gutter: 4 },
+  }));
+
+  const dateInput = useDateInput(() => ({
+    value: currentSelection(),
+    onValueChange: (details) => handleSelectionChange(details.value),
+    readOnly: local.editable === false,
+  }));
+
   return (
     <Field
       label={local.label}
       helperText={local.helperText}
       error={local.error}
     >
-      <ArkDate.Root
-        {...rootProps}
-        // 文字列の YYYY-MM-DD から Ark UI 専用の DateValue[] 配列構造へ変換
-        value={local.value ? [parseDate(local.value)] : []}
-        onValueChange={(details) => {
-          const firstDate = details.value[0];
-          if (!firstDate) {
-            local.onValueChange?.(null);
-            return;
-          }
-          const isoString = `${firstDate.year}-${String(firstDate.month).padStart(2, '0')}-${String(firstDate.day).padStart(2, '0')}`;
-          local.onValueChange?.(isoString);
-        }}
-        // デフォルトの西暦フォーマッタも DateValue 型で厳密に受け止める
-        format={
-          local.format ??
-          ((d: DateValue) =>
-            `${d.year}-${String(d.month).padStart(2, '0')}-${String(d.day).padStart(2, '0')}`)
-        }
-        // 外から渡される parse ロジック、またはデフォルト（undefined）をそのままバインド
-        parse={local.parse}
-        positioning={{ gutter: 4 }}
-      >
-        <ArkDate.Context>
-          {(api) => {
-            const currentApi = api() as DatePickerApiObject;
-            return (
-              <div class="w-full">
-                {local.parts.renderControl(currentApi, styles, {
-                  placeholder: local.placeholder,
-                })}
+      <ArkDateInput.RootProvider value={dateInput}>
+        <ArkDatePicker.RootProvider value={datePicker}>
+          {/* 🌟 1. まず Input のコンテキストを展開 */}
+          <ArkDateInput.Context>
+            {(inputApi) => (
+              /* 🌟 2. 次に Picker のコンテキストを綺麗にネストさせて展開 */
+              <ArkDatePicker.Context>
+                {(pickerApi) => {
+                  const currentInputApi = inputApi() as DateInputApiObject;
+                  const currentPickerApi = pickerApi() as DatePickerApiObject;
 
-                <Portal>
-                  <ArkDate.Positioner>
-                    <ArkDate.Content class={styles.content()}>
-                      {local.parts.renderContent(currentApi, styles)}
-                    </ArkDate.Content>
-                  </ArkDate.Positioner>
-                </Portal>
-              </div>
-            );
-          }}
-        </ArkDate.Context>
-      </ArkDate.Root>
+                  return (
+                    <div class="w-full">
+                      {local.parts.renderControl(
+                        currentInputApi,
+                        currentPickerApi,
+                        styles,
+                        {
+                          placeholder: local.placeholder,
+                          editable: local.editable,
+                        },
+                      )}
+
+                      <Portal>
+                        <ArkDatePicker.Positioner>
+                          <ArkDatePicker.Content class={styles.content()}>
+                            {local.parts.renderContent(
+                              currentPickerApi,
+                              styles,
+                            )}
+                          </ArkDatePicker.Content>
+                        </ArkDatePicker.Positioner>
+                      </Portal>
+                    </div>
+                  );
+                }}
+              </ArkDatePicker.Context>
+            )}
+          </ArkDateInput.Context>
+        </ArkDatePicker.RootProvider>
+      </ArkDateInput.RootProvider>
     </Field>
   );
 };

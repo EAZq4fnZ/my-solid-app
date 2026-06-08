@@ -118,8 +118,8 @@ export function createDateTimeModule(
         }).toString() as IsoDateString;
       }
 
-      const rawHour = timeParts[0] as number;;
-      const rawMinute = timeParts[1] as number;;
+      const rawHour = timeParts[0] as number;
+      const rawMinute = timeParts[1] as number;
       const rawSecond = timeParts[2];
 
       if (rawHour == null || rawMinute == null) {
@@ -166,7 +166,15 @@ export function createDateTimeModule(
     return result as IsoDateString | IsoDateTimeString;
   }
 
+  const formatCache = new Map<string, string>();
+
   const toFormat = (isoStr: string, template: string): string => {
+    const key = `${isoStr}::${template}`; // 結果をキャッシュするためのキー(日付文字列 + 置換テンプレート)
+    const cached = formatCache.get(key); // キーとキャッシュがあれば、その結果を返す
+    if (cached !== undefined) {
+      return cached;
+    }
+
     try {
       const zdt = Temporal.ZonedDateTime.from(isoStr).withTimeZone(
         config.timezone,
@@ -185,8 +193,9 @@ export function createDateTimeModule(
         second: localized.second,
         dayOfWeek: localized.dayOfWeek,
       };
-
-      return formatByTemplate(parts, template, config.fetchEraInfo);
+      const result = formatByTemplate(parts, template, config.fetchEraInfo);
+      formatCache.set(key, result); // 結果をキャッシュに保存しておき、次回からは再利用
+      return result; // そして結果を返す
     } catch {
       return '---';
     }

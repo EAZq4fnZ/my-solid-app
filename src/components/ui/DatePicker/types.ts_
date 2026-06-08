@@ -12,7 +12,7 @@ export type DatePickerApiObject = ReturnType<
 /**
  * スタイルオブジェクトの型定義（any を完全に排除）
  */
-export type DatePickerViewStyles = Record<string, () => string>;
+export type DatePickerViewStyles = Record<string, () => string>; /*
 
 /**
  * 外部から注入するパーツのインターフェース
@@ -31,8 +31,9 @@ export interface DatePickerParts {
     styles: DatePickerViewStyles,
   ) => JSX.Element;
 
-  /** * カレンダーヘッダー（2026年5月など）の表示ロジックを注入
-   * Java でいう抽象メソッドの定義に相当します
+  /**
+   * カレンダーヘッダー（day, month, yearビュー毎）の動的表示ロジック
+   * 引数で api を受け取り、現在の view に応じてテキストを分岐出力させます。
    */
   renderRangeText: (api: DatePickerApiObject) => JSX.Element;
 }

@@ -7,7 +7,7 @@ import type {
   DatePickerApiObject,
   DatePickerParts,
   DatePickerViewStyles,
-} from '../types';
+} from '../type';
 
 /**
  * 標準的なカレンダー（コンテンツ部）のレンダリングエンジン

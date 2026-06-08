@@ -42,7 +42,7 @@ export const Input = (props: InputProps) => {
         </label>
       </Show>
 
-      {/* 5. Input 本体の表示[cite: 1] */}
+      {/* 5. Input 本体の表示 */}
       <input
         {...localProps}
         // data-invalid 属性を付与することで sharedStyles のエラー用スタイルが発動[cite: 1]
@@ -50,7 +50,7 @@ export const Input = (props: InputProps) => {
         class={styles.input({ class: variantProps.class })}
       />
 
-      {/* 6. エラーメッセージの表示[cite: 1] */}
+      {/* 6. エラーメッセージの表示 */}
       <Show when={variantProps.error}>
         <p class={styles.errorText()}>{variantProps.error}</p>
       </Show>

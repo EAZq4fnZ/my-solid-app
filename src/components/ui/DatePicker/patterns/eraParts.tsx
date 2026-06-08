@@ -1,88 +1,73 @@
 // src/components/ui/DatePicker/patterns/eraParts.tsx
-import { DatePicker as ArkDate } from '@ark-ui/solid';
+import {
+  DateInput as ArkDateInput,
+  DatePicker as ArkDatePicker,
+} from '@ark-ui/solid';
 import { CalendarIcon } from 'lucide-solid';
-import { Show } from 'solid-js';
+import { For } from 'solid-js';
 
-import { dateUtils, formatCustom } from '@/lib/date';
-import type { DatePickerApiObject, DatePickerViewStyles } from '../types';
-
-/**
- * 【和暦対応】日付を和暦に変換する
- * 例: "2026-05-11" => "2026(令和08)"
- */
-export const format2JpEra = (isoDate: string | undefined): string => {
-  if (!isoDate || !dateUtils.isValid(isoDate)) return '';
-
-  // テンプレートに'YYYY(ENEYT)'を指定 (例: "2026-05-11" => "2026(令和08)")
-  return formatCustom(isoDate, 'YYYY(ENEYT)');
-};
+import { formatCustom } from '@/lib/date';
+import type {
+  DateInputApiObject,
+  DatePickerApiObject,
+  DatePickerViewStyles,
+} from '../type';
 
 /**
- * 【和暦対応】RangeText (カレンダー上部の年月表示) をオーバーライド
- * @param api DatePickerApi オブジェクト (コンテキストから取得)
- * @returns 和暦表示用 RangeText (オーバーライド)
+ * 【和暦対応】ビューモードを判定し、カレンダーヘッダー文字列をレンダリングする
  */
 export const renderEraRangeText = (api: DatePickerApiObject) => {
-  // カレンダー上部の年月を取得
-  const year = api.visibleRange.start.year;
-  const month = api.visibleRange.start.month;
+  const view = api.view;
 
-  const safeIsoStr = `${year}-${String(month).padStart(2, '0')}-01`; // "2026-05-01"
+  if (view === 'year') {
+    const startYear = Math.floor(api.focusedValue.year / 10) * 10;
+    return (
+      <span class="text-zinc-100 font-medium">
+        {startYear}年 〜 {startYear + 9}年
+      </span>
+    );
+  }
 
-  // テンプレートに 'ENEYT' を指定(例: "2026-05-01" => "令和08")
-  const eraLabel = dateUtils.isValid(safeIsoStr)
-    ? formatCustom(safeIsoStr, 'ENEYT')
-    : '';
+  if (view === 'month') {
+    const year = api.focusedValue.year;
+    const dummyIso = `${year}-01-01`;
+    const eraYearText = formatCustom(dummyIso, 'ENEYT年');
+    return <span class="text-zinc-100 font-medium">{eraYearText}</span>;
+  }
 
-  return (
-    <span class="flex items-center gap-1">
-      <ArkDate.RangeText />
+  const start = api.visibleRange.start;
+  const isoStr = `${start.year}-${String(start.month).padStart(2, '0')}-${String(start.day).padStart(2, '0')}`;
+  const eraText = formatCustom(isoStr, 'ENEYT年MM月');
 
-      <Show when={api.view !== 'year' && eraLabel}>
-        <span class="text-zinc-400 font-normal">({eraLabel})</span>
-      </Show>
-    </span>
-  );
+  return <span class="text-zinc-100 font-medium">{eraText}</span>;
 };
 
-/**【和暦対応】Control (インプットフィールド部分)のレンダリングをオーバーライド */
+/**
+ * 【和暦対応】DateInputのセグメント構造を主軸にしたControl部分のオーバーライド
+ */
 export const renderEraControl = (
-  _api: DatePickerApiObject,
+  dateInputApi: DateInputApiObject,
+  _datePickerApi: DatePickerApiObject,
   styles: DatePickerViewStyles,
-  options: { placeholder?: string },
+  _options: { placeholder?: string; editable?: boolean },
 ) => {
   return (
     <div class={styles.inputGroup()}>
-      <ArkDate.Input
-        class={styles.input()}
-        placeholder={options.placeholder ?? '日付を選択 (例: 令和...)'}
-      />
-      <ArkDate.Control class={styles.inputIcon()}>
-        <ArkDate.Trigger>
+      {/* 🌟 Ark UI の正規エクスポートである Field と parts プロパティを使用してループを回します */}
+      <ArkDateInput.Field class={styles.inputField()}>
+        <For each={dateInputApi.parts}>
+          {(segment) => (
+            <ArkDateInput.Segment segment={segment} class={styles.segment()} />
+          )}
+        </For>
+      </ArkDateInput.Field>
+
+      {/* カレンダー起動トリガー */}
+      <div class={styles.inputIcon()}>
+        <ArkDatePicker.Trigger>
           <CalendarIcon size={16} />
-        </ArkDate.Trigger>
-      </ArkDate.Control>
-    </div>
-  );
-};
-/*export const renderEraControl = (
-  api: DatePickerApiObject,
-  styles: DatePickerViewStyles,
-  options: { placeholder?: string },
-) => {
-  return (
-    <div class={styles.control()}>
-      <div class="relative flex-1">
-        <input
-          value={format2JpEra(api.valueAsString[0])}
-          placeholder={options.placeholder ?? '選択されていません'}
-          class={styles.input()}
-          readonly
-        />
-        <ArkDate.Trigger class={styles.trigger()}>
-          <CalendarIcon size={16} />
-        </ArkDate.Trigger>
+        </ArkDatePicker.Trigger>
       </div>
     </div>
   );
-};*/
+};
