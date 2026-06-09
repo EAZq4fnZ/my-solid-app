@@ -32,7 +32,7 @@ export const dateTimeRegistry: Record<string, DateTimeModule> = {
   // 標準の西暦(ISO8601)モジュール（比較・防衛・拡張用）
   iso8601: createDateTimeModule({
     calendarId: 'iso8601',
-    timezone: 'Asia/Tokyo',
+    timezone: 'UTC',
     parser: (text) => {
       const nums = text.split(/\D+/).filter(Boolean).map(Number);
       return {

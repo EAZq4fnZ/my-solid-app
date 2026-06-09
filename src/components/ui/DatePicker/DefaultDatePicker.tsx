@@ -1,4 +1,4 @@
-// src/components/ui/DatePicker/EraDatePicker.tsx
+// src/components/ui/DatePicker/DefaultDatePicker.tsx
 import { DatePicker as ArkDatePicker, useDatePicker } from '@ark-ui/solid';
 import { CalendarDateTime } from '@internationalized/date';
 import { Temporal } from '@js-temporal/polyfill';
@@ -7,24 +7,23 @@ import { formatCustom, parseDate, parseDateTime } from '@/lib/date';
 import { Field } from '../Field'; 
 import { BaseDateInput } from './BaseDateInput';
 import { renderCommonContent } from './patterns/commonContent';
-import { renderEraRangeText } from './patterns/eraParts';
 import { datePickerStyles, type BaseDatePickerProps } from './types';
 import { IsoDateString, IsoDateTimeString } from '@/types/date';
 
-const JP_TIME_ZONE = 'Asia/Tokyo';
-
-export const EraDatePicker = (props: BaseDatePickerProps) => {
+export const DefaultDatePicker = (props: BaseDatePickerProps) => {
   const [local, variantProps, restProps] = splitProps(
     props,
     ['value', 'onValueChange', 'label', 'error', 'helperText', 'optional', 'template', 'granularity'],
     ['disabled', 'readOnly']
   );
 
+  const TIME_ZONE = 'UTC';
+
   const [isFocused, setIsFocused] = createSignal(false);
   const granularity = () => local.granularity ?? 'day';
 
   const template = () =>
-    local.template ?? (granularity() === 'minute' ? 'YYYY(ENEYT年)MM月DD日 HH時mm分' : 'YYYY(ENEYT年)MM月DD日');
+    local.template ?? (granularity() === 'minute' ? 'YYYY/MM/DD HH:mm' : 'YYYY/MM/DD');
 
   const formattedValue = createMemo(() => {
     if (!local.value) return '';
@@ -32,7 +31,7 @@ export const EraDatePicker = (props: BaseDatePickerProps) => {
   });
 
   const placeholderText = () =>
-    granularity() === 'minute' ? '令和8年06月08日 12:00' : '令和8年06月08日';
+    granularity() === 'minute' ? '2026/06/08 12:00' : '2026/06/08';
 
   const machineValue = () => {
     if (!local.value) return [];
@@ -43,6 +42,7 @@ export const EraDatePicker = (props: BaseDatePickerProps) => {
     }
   };
 
+  // useDatePicker の引数は createMemo を使わず、元のプレーンな関数参照に戻し、型を any 判定で安全に流します
   const datePicker = useDatePicker(() => ({
     value: machineValue() as any,
     disabled: variantProps.disabled,
@@ -63,9 +63,9 @@ export const EraDatePicker = (props: BaseDatePickerProps) => {
           day: dateValue.day,
           hour: dateValue.hour,
           minute: dateValue.minute,
-          timeZone: JP_TIME_ZONE,
+          timeZone: TIME_ZONE,
         });
-        local.onValueChange(isoDateTime.toString() as IsoDateTimeString);
+        local.onValueChange(isoDateTime.toString({calendarName: 'never', timeZoneName: 'never', offset: 'auto', fractionalSecondDigits: 0}) as IsoDateTimeString);
       } else {
         const isoDate = `${dateValue.year}-${String(dateValue.month).padStart(2, '0')}-${String(dateValue.day).padStart(2, '0')}`;
         local.onValueChange(isoDate as IsoDateString);
@@ -104,12 +104,11 @@ export const EraDatePicker = (props: BaseDatePickerProps) => {
                 </div>
               </Show>
 
-              {/* ポップアップカレンダーレイ層 */}
+              {/* 安全に追加されたカレンダーのポップアップ表示層 */}
               <ArkDatePicker.Positioner>
                 <ArkDatePicker.Content class="bg-zinc-950 border border-zinc-800 p-4 rounded-xl shadow-2xl z-50 absolute left-0 top-[105%] mt-1 min-w-[280px]">
                   {renderCommonContent(api, datePickerStyles, {
-                    // 🌟 型チェックを安全にクリアするために、展開された生の api を安全に流し込みます
-                    renderRangeText: (currentApi) => renderEraRangeText(currentApi),
+                    renderRangeText: (currentApi) => currentApi().visibleRangeText ?? '',
                   })}
                 </ArkDatePicker.Content>
               </ArkDatePicker.Positioner>
