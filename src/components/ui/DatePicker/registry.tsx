@@ -1,15 +1,15 @@
 // src/components/ui/DatePicker/index.tsx
 import { Dynamic } from 'solid-js/web';
 import { splitProps } from 'solid-js';
-import { EraDatePicker } from './EraDatePicker';
+import { JpEraDatePicker } from './JpEraDatePicker';
 import { DefaultDatePicker } from './DefaultDatePicker';
 import type { BaseDatePickerProps } from './types';
 
 export type { BaseDatePickerProps } from './types';
 
 const uiRegistry = {
-  'japanese': EraDatePicker,
-  'iso8601': DefaultDatePicker,
+  japanese: JpEraDatePicker,
+  iso8601: DefaultDatePicker,
 } as const;
 
 interface RegistryDatePickerProps extends BaseDatePickerProps {

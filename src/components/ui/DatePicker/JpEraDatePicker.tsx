@@ -10,11 +10,11 @@ import { renderCommonContent } from './patterns/commonContent';
 import { renderEraRangeText } from './patterns/eraParts';
 import { datePickerStyles, type BaseDatePickerProps } from './types';
 import { formatCustom, parseDate, parseDateTime } from '@/lib/date';
-import { IsoDateTimeString, IsoDateString } from '@/types/date';
+import type { IsoDateTimeString, IsoDateString } from '@/types/date';
 
 const JP_TIME_ZONE = 'Asia/Tokyo';
 
-export const EraDatePicker = (props: BaseDatePickerProps) => {
+export const JpEraDatePicker = (props: BaseDatePickerProps) => {
   const [local, variantProps] = splitProps(
     props,
     [
@@ -114,7 +114,7 @@ export const EraDatePicker = (props: BaseDatePickerProps) => {
                   !variantProps.disabled
                 }
                 fallback={
-                  // 🌟 Biome対策: エラーの原因だった div + role="button" を本物の <button> タグに変更！
+                  // Biome対策: エラーの原因だった div + role="button" を本物の <button> タグに変更！
                   // button の規定の送信挙動（type="submit"）を防ぐために type="button" を明記
                   <button
                     type="button"

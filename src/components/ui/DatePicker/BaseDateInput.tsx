@@ -13,14 +13,14 @@ interface BaseDateInputProps {
 export const BaseDateInput = (props: BaseDateInputProps) => {
   return (
     <ArkDateInput.Control class={datePickerStyles.inputGroup()}>
-      {/* 🌟 SegmentContext は内部で自動ループし、各セグメント（DateSegment オブジェクト）を直接渡してきます */}
+      {/* SegmentContext は内部で自動ループし、各セグメント（DateSegment オブジェクト）を直接渡してきます */}
       <ArkDateInput.SegmentContext>
         {(segment) => (
           <>
-            {/* 🌟 segment は関数ではないオブジェクトなので、そのまま segment 属性に渡します */}
+            {/* segment は関数ではないオブジェクトなので、そのまま segment 属性に渡します */}
             <ArkDateInput.Segment
               segment={segment}
-              class="px-0.5 text-sm font-mono text-zinc-100 focus:bg-zinc-800 focus:text-white rounded outline-none data-[placeholder]:text-zinc-500"
+              class="px-0.5 text-sm font-mono text-zinc-100 focus:bg-zinc-800 focus:text-white rounded outline-none data-placeholder:text-zinc-500"
             />
           </>
         )}

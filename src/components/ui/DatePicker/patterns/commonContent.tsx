@@ -7,6 +7,7 @@ import { Index } from 'solid-js';
 type DatePickerViewStyles = {
   viewControl?: () => string;
   table?: () => string;
+  //bioeme-ignore lint/suspicious/noExplicitAny: コールバック引数の any を許容
 } & Record<string, any>;
 
 /**
@@ -14,9 +15,11 @@ type DatePickerViewStyles = {
  * parts.renderRangeText を受け取ることで、表示ロジックを外部から注入（オーバーライド）可能にします。
  */
 export const renderCommonContent = (
-  api: any, 
+  //biome-ignore lint/suspicious/noExplicitAny: コールバック引数の any を許容
+  api: any,
   styles: DatePickerViewStyles,
-  parts: { renderRangeText: (api: any) => any }, // 🌟 戻り値を string から any に変更して Element を許容
+  //biome-ignore lint/suspicious/noExplicitAny: コールバック引数の Element を許容
+  parts: { renderRangeText: (api: any) => any },
 ) => {
   // 上位層から api がシグナルとして渡ってきた場合と、展開済みのオブジェクトとして渡ってきた場合の双方に対応する防衛ロジック
   const datePicker = typeof api === 'function' ? api() : api;

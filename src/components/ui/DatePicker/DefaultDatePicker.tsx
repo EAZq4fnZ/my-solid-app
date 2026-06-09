@@ -1,15 +1,17 @@
 // src/components/ui/DatePicker/DefaultDatePicker.tsx
+import { createMemo, createSignal, Show, splitProps } from 'solid-js';
+
 import { DatePicker as ArkDatePicker, useDatePicker } from '@ark-ui/solid';
 import { CalendarDateTime } from '@internationalized/date';
 import { Temporal } from '@js-temporal/polyfill';
-import { createMemo, createSignal, Show, splitProps } from 'solid-js';
 
-import { formatCustom, parseDate, parseDateTime } from '@/lib/date';
-import { Field } from '../Field';
 import { BaseDateInput } from './BaseDateInput';
+import { Field } from '../Field';
 import { renderCommonContent } from './patterns/commonContent';
 import { datePickerStyles, type BaseDatePickerProps } from './types';
-import { IsoDateTimeString, IsoDateString } from '@/types/date';
+
+import { formatCustom, parseDate, parseDateTime } from '@/lib/date';
+import type { IsoDateTimeString, IsoDateString } from '@/types/date';
 
 export const DefaultDatePicker = (props: BaseDatePickerProps) => {
   const [local, variantProps] = splitProps(
@@ -109,7 +111,7 @@ export const DefaultDatePicker = (props: BaseDatePickerProps) => {
                   !variantProps.disabled
                 }
                 fallback={
-                  // 🌟 Biome対策: こちらも本物の <button> タグに変更
+                  // Biome対策: こちらも本物の <button> タグに変更
                   <button
                     type="button"
                     class={datePickerStyles.inputGroup()}
