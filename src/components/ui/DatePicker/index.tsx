@@ -1,30 +1,37 @@
-// src/components/ui/DatePicker/index.tsx
-import { Dynamic } from 'solid-js/web';
-import { splitProps } from 'solid-js';
-import { JpEraDatePicker } from './JpEraDatePicker';
-import type { BaseDatePickerProps } from './types';
+// src/lib/date/index.ts
+import { type } from 'arktype';
 
-export type { BaseDatePickerProps } from './types';
+import type {
+  EraFormatMode,
+  IsoDateString,
+  IsoDateTimeString,
+} from '@/types/date';
+import { uiRegistry } from './registry';
 
-// UIのバリエーション名簿（レジストリ）
-const uiRegistry = {
-  japanese: JpEraDatePicker,
-  // 将来的に標準西暦ピッカーを作ったらここに並べる
-  // 'standard': DefaultDatePicker,
-} as const;
+/** アクティブな日付モジュール（例: 和暦モジュール） */
+export const activeDateModule = uiRegistry.japanese;
 
-interface RegistryDatePickerProps extends BaseDatePickerProps {
-  pickerId?: keyof typeof uiRegistry;
-}
+export const parseDate = (value: string) =>{}
 
-/**
- * 🌟 外部のフォーム画面は、このコンポーネントだけをインポートして使う
- */
-export const DatePicker = (props: RegistryDatePickerProps) => {
-  const [local, restProps] = splitProps(props, ['pickerId']);
 
-  // 指定がない場合は、主役の和暦ピッカーをデフォルトにして動作させる
-  const Component = () => uiRegistry[local.pickerId ?? 'japanese'];
+export const parseDateTime = (value: string) =>{}
 
-  return <Dynamic component={Component()} {...restProps} />;
-};
+
+export const formatDate = (isoStr: string, mode?: EraFormatMode) =>{}
+
+
+export const getToday =  () => {}
+
+export const getNow =  () => {}
+
+
+// --- ArkType パイプラインスキーマ（TanStack Form等の送信時バリデーション用） ---
+
+/** ユーザーの自由な入力を、和暦も含めて安全に `IsoDateString` ブランド型へ昇格させる単一用スキーマ */
+export const isoDateSchema = type('string').pipe((s, ctx) => {
+  const result = parseDate(s);
+  return result !== null ? result : ctx.error('invalid_date_format');
+});
+
+/** 複数選択された日付文字列の配列を、一括して `IsoDateString[]` に昇格させる複数用スキーマ */
+export const multipleIsoDateSchema = type([isoDateSchema, '[]']);

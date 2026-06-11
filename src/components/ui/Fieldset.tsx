@@ -9,7 +9,6 @@ export interface FieldSetProps extends ArkFieldset.RootProps {
   label?: string;
   helperText?: string;
   error?: string;
-  optional?: boolean;
   children: JSX.Element;
 }
 
@@ -26,7 +25,6 @@ export const FieldSet = (props: FieldSetProps) => {
     'label',
     'error',
     'helperText',
-    'optional',
     'children',
   ]);
   const styles = fieldStyles(); // sharedStyles を継承
@@ -42,9 +40,6 @@ export const FieldSet = (props: FieldSetProps) => {
           <ArkFieldset.Legend class={styles.label()}>
             {local.label}
           </ArkFieldset.Legend>
-          <Show when={local.optional}>
-            <span class={styles.oprional()}>任意</span>
-          </Show>
         </div>
       </Show>
       {/*<Show when={local.description}>*/}

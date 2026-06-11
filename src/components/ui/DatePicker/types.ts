@@ -1,28 +1,39 @@
 // src/components/ui/DatePicker/types.ts
-import type { IsoDateString, IsoDateTimeString } from '@/types/date';
+import type { DateValue } from '@ark-ui/solid/date-picker';
 
 /**
- * 完全にカプセル化された共通の Props 契約
- * ComboboxProps の構造と綺麗に対称させています。
+ * UI層がピュアに扱うカレンダー基本Props
  */
-export interface BaseDatePickerProps {
-  value: IsoDateString | IsoDateTimeString | null;
-  // biome-ignore lint/suspicious/noExplicitAny: <any型を使用>
-  onValueChange: (value: any) => void;
-  label: string; //
-  error?: string; //
+export interface DatePickerProps {
+  // 共通 Props(<Fieldset>,<Field>から継承)
+  label?: string;
+  error?: string;
   helperText?: string;
-  optional?: boolean;
+  required?: boolean;
+  // <DatePicker> 固有の Props
+  value: DateValue[]; 
+  onValueChange: (value: DateValue[]) => void;
   granularity?: 'day' | 'minute';
   disabled?: boolean;
   readOnly?: boolean;
-  template?: string;
+  selectionMode?: 'single' | 'multiple';
 }
 
+/**
+ * 各暦モジュールからコンポーネントへ引き渡す、暦特化型のDI拡張Props
+ * 
+ */
+export interface EraDatePickerProps extends DatePickerProps {
+  calendarId: string;
+  locale: string;
+  timeZone: string;
+  inputPlaceholder: string;
+}
+
+/**
+ * 簡易的なUIスタイリング用のクラス定義群
+ */
 export const datePickerStyles = {
-  // 高さを h-11、背景色を bg-zinc-800 に統一し、Combobox の input スロットの外観と完全に同期
   inputGroup: () =>
-    'flex h-11 w-full items-center rounded-md border border-zinc-700 bg-zinc-800 px-3 py-2 text-sm focus-within:border-zinc-500 focus-within:ring-2 focus-within:ring-zinc-500 disabled:cursor-not-allowed disabled:opacity-50 transition-all',
-  displayText: () =>
-    'text-sm text-zinc-100 font-sans cursor-text select-none block w-full text-left',
+    'flex h-10 w-full rounded-lg border border-zinc-800 bg-zinc-950 px-3 py-2 text-sm ring-offset-background focus-within:ring-2 focus-within:ring-zinc-400 focus-within:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50',
 };

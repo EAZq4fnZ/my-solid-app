@@ -1,19 +1,17 @@
 // src/components/ui/DatePicker/DefaultDatePicker.tsx
-import { createMemo, createSignal, Show, splitProps } from 'solid-js';
+import { splitProps, Index } from 'solid-js';
+import { Portal } from 'solid-js/web';
 
-import { DatePicker as ArkDatePicker, useDatePicker } from '@ark-ui/solid';
-import { CalendarDateTime } from '@internationalized/date';
-import { Temporal } from '@js-temporal/polyfill';
+import { DateInput as ArkDateInput, useDateInput } from '@ark-ui/solid/date-input';
+import { DatePicker as ArkDatePicker, useDatePicker } from '@ark-ui/solid/date-picker';
+import { LocaleProvider } from '@ark-ui/solid/locale';
+import { CalendarIcon, ChevronLeftIcon, ChevronRightIcon } from 'lucide-solid';
 
-import { BaseDateInput } from './BaseDateInput';
 import { Field } from '../Field';
-import { renderCommonContent } from './patterns/commonContent';
-import { datePickerStyles, type BaseDatePickerProps } from './types';
+import { datePickerStyles } from './types';
+import type { EraDatePickerProps } from './types';
 
-import { formatCustom, parseDate, parseDateTime } from '@/lib/date';
-import type { IsoDateTimeString, IsoDateString } from '@/types/date';
-
-export const DefaultDatePicker = (props: BaseDatePickerProps) => {
+export const DefaultDatePicker = (props: EraDatePickerProps) => {
   const [local, variantProps] = splitProps(
     props,
     [
@@ -22,74 +20,37 @@ export const DefaultDatePicker = (props: BaseDatePickerProps) => {
       'label',
       'error',
       'helperText',
-      'optional',
-      'template',
+      'required',
       'granularity',
+      'selectionMode',
+      'calendarId',
+      'arkLocale',
+      'timeZone',
+      'inputPlaceholder',
     ],
     ['disabled', 'readOnly'],
   );
 
-  const [isFocused, setIsFocused] = createSignal(false);
-  const granularity = () => local.granularity ?? 'day';
-
-  const template = () =>
-    local.template ??
-    (granularity() === 'minute' ? 'YYYY/MM/DD HH:mm' : 'YYYY/MM/DD');
-
-  const formattedValue = createMemo(() => {
-    if (!local.value) return '';
-    return formatCustom(local.value, template());
-  });
-
-  const placeholderText = () =>
-    granularity() === 'minute' ? '2026/06/08 12:00' : '2026/06/08';
-
-  const machineValue = () => {
-    if (!local.value) return [];
-    try {
-      return [
-        granularity() === 'minute'
-          ? parseDateTime(local.value)
-          : parseDate(local.value),
-      ];
-    } catch {
-      return [];
-    }
-  };
-
-  const datePicker = useDatePicker(() => ({
-    // biome-ignore lint/suspicious/noExplicitAny: マシーン型衝突を回避
-    value: machineValue() as any,
+  // カレンダーエンジン側の初期化
+  const datePicker = useDatePicker({
+    value: local.value,
+    selectionMode: local.selectionMode ?? 'single',
     disabled: variantProps.disabled,
     readOnly: variantProps.readOnly,
-    granularity: granularity(),
-    selectionMode: 'single',
+    timeZone: local.timeZone,
     onValueChange: (details) => {
-      const dateValue = details.value[0];
-      if (!dateValue) {
-        local.onValueChange(null);
-        return;
-      }
+      local.onValueChange(details.value);
+    },
+  });
 
-      if (granularity() === 'minute' && dateValue instanceof CalendarDateTime) {
-        const isoDateTime = Temporal.ZonedDateTime.from({
-          year: dateValue.year,
-          month: dateValue.month,
-          day: dateValue.day,
-          hour: dateValue.hour,
-          minute: dateValue.minute,
-          timeZone: 'Asia/Tokyo',
-        }).toString({
-          calendarName: 'never',
-          timeZoneName: 'never',
-          offset: 'auto',
-          fractionalSecondDigits: 0,
-        });
-        local.onValueChange(isoDateTime as IsoDateTimeString);
-      } else {
-        const isoDate = `${dateValue.year}-${String(dateValue.month).padStart(2, '0')}-${String(dateValue.day).padStart(2, '0')}`;
-        local.onValueChange(isoDate as IsoDateString);
-      }
+  // 手入力セグメント側の初期化
+  const dateInput = useDateInput(() => ({
+    value: datePicker().value,
+    disabled: variantProps.disabled,
+    readOnly: variantProps.readOnly,
+    timeZone: local.timeZone,
+    onValueChange(details) {
+      datePicker().setValue(details.value);
     },
   }));
 
@@ -98,57 +59,166 @@ export const DefaultDatePicker = (props: BaseDatePickerProps) => {
       label={local.label}
       error={local.error}
       helperText={local.helperText}
-      optional={local.optional}
+      required={local.required}
     >
-      <ArkDatePicker.RootProvider value={datePicker}>
-        <ArkDatePicker.Context>
-          {(api) => (
-            <div class="w-full flex flex-col relative">
-              <Show
-                when={
-                  isFocused() &&
-                  !variantProps.readOnly &&
-                  !variantProps.disabled
-                }
-                fallback={
-                  // Biome対策: こちらも本物の <button> タグに変更
-                  <button
-                    type="button"
-                    class={datePickerStyles.inputGroup()}
-                    tabIndex={variantProps.disabled ? -1 : 0}
-                    onFocus={() => setIsFocused(true)}
-                    id={api().getInputProps().id}
-                  >
-                    <span class={datePickerStyles.displayText()}>
-                      {formattedValue() || (
-                        <span class="text-zinc-500">{placeholderText()}</span>
-                      )}
-                    </span>
-                  </button>
-                }
-              >
-                <div
-                  onFocusIn={() => setIsFocused(true)}
-                  onFocusOut={() => setIsFocused(false)}
-                >
-                  <BaseDateInput api={datePicker} />
-                </div>
-              </Show>
+      <LocaleProvider locale={local.arkLocale}>
+        <ArkDateInput.RootProvider value={dateInput}>
+          <ArkDateInput.Control class={datePickerStyles.inputGroup()}>
+            <ArkDatePicker.RootProvider value={datePicker}>
+              <ArkDatePicker.Control class="flex items-center justify-between w-full gap-2">
+                
+                {/* インライン手入力セグメント（和暦ロケール時は自動的に元号入力パーツに変化） */}
+                <ArkDateInput.SegmentGroup class="flex items-center gap-0.5">
+                  <ArkDateInput.SegmentContext>
+                    {(segment) => (
+                      <ArkDateInput.Segment
+                        segment={segment}
+                        class="px-0.5 text-sm font-mono text-zinc-100 focus:bg-zinc-800 focus:text-white rounded outline-none data-placeholder:text-zinc-500"
+                      />
+                    )}
+                  </ArkDateInput.SegmentContext>
+                </ArkDateInput.SegmentGroup>
 
-              {/* カレンダーのポップアップ表示層 */}
-              <ArkDatePicker.Positioner>
-                <ArkDatePicker.Content class="bg-zinc-950 border border-zinc-800 p-4 rounded-xl shadow-2xl z-50 absolute left-0 top-[105%] mt-1 min-w-70">
-                  {renderCommonContent(api, datePickerStyles, {
-                    // biome-ignore lint/suspicious/noExplicitAny: コールバック引数の any を許容
-                    renderRangeText: (currentApi: any) =>
-                      currentApi().visibleRangeText ?? '',
-                  })}
-                </ArkDatePicker.Content>
-              </ArkDatePicker.Positioner>
-            </div>
-          )}
-        </ArkDatePicker.Context>
-      </ArkDatePicker.RootProvider>
+                {/* ポップアップトリガーボタン */}
+                <ArkDatePicker.Trigger class="text-zinc-400 hover:text-zinc-200 transition-colors cursor-pointer p-1">
+                  <CalendarIcon size={18} />
+                </ArkDatePicker.Trigger>
+              </ArkDatePicker.Control>
+
+              {/* ポップアップカレンダー */}
+              <Portal>
+                <ArkDatePicker.Positioner>
+                  <ArkDatePicker.Content class="bg-zinc-950 border border-zinc-800 p-4 rounded-xl shadow-2xl z-50 min-w-70">
+                    <ArkDatePicker.Context>
+                      {(dp) => (
+                        <>
+                          {/* --- Day View (日表示) --- */}
+                          <ArkDatePicker.View view="day" class="flex flex-col gap-3">
+                            <ArkDatePicker.ViewControl class="flex items-center justify-between">
+                              <ArkDatePicker.PrevTrigger class="hover:bg-zinc-800 p-1 rounded transition-colors text-zinc-200 cursor-pointer">
+                                <ChevronLeftIcon size={18} />
+                              </ArkDatePicker.PrevTrigger>
+                              <ArkDatePicker.ViewTrigger class="hover:bg-zinc-800 px-2 py-1 rounded-md font-medium text-sm transition-colors text-zinc-100 cursor-pointer">
+                                <ArkDatePicker.RangeText />
+                              </ArkDatePicker.ViewTrigger>
+                              <ArkDatePicker.NextTrigger class="hover:bg-zinc-800 p-1 rounded transition-colors text-zinc-200 cursor-pointer">
+                                <ChevronRightIcon size={18} />
+                              </ArkDatePicker.NextTrigger>
+                            </ArkDatePicker.ViewControl>
+
+                            <ArkDatePicker.Table class="w-full border-collapse">
+                              <ArkDatePicker.TableHead>
+                                <ArkDatePicker.TableRow class="flex justify-around w-full mb-1">
+                                  <Index each={dp().weekDays}>
+                                    {(weekDay) => (
+                                      <ArkDatePicker.TableHeader class="text-xs font-medium text-zinc-500 w-8 text-center select-none">
+                                        {weekDay().short}
+                                      </ArkDatePicker.TableHeader>
+                                    )}
+                                  </Index>
+                                </ArkDatePicker.TableRow>
+                              </ArkDatePicker.TableHead>
+                              <ArkDatePicker.TableBody>
+                                <Index each={dp().weeks}>
+                                  {(week) => (
+                                    <ArkDatePicker.TableRow class="flex justify-around w-full gap-y-1">
+                                      <Index each={week()}>
+                                        {(day) => (
+                                          <ArkDatePicker.TableCell value={day()} class="w-8 h-8 flex items-center justify-center">
+                                            <ArkDatePicker.TableCellTrigger class="w-7 h-7 text-sm rounded-md flex items-center justify-center text-zinc-200 hover:bg-zinc-800 transition-colors data-selected:bg-zinc-100 data-selected:text-zinc-950 data-disabled:opacity-30 data-disabled:hover:bg-transparent select-none cursor-pointer">
+                                              {day().day}
+                                            </ArkDatePicker.TableCellTrigger>
+                                          </ArkDatePicker.TableCell>
+                                        )}
+                                      </Index>
+                                    </ArkDatePicker.TableRow>
+                                  )}
+                                </Index>
+                              </ArkDatePicker.TableBody>
+                            </ArkDatePicker.Table>
+                          </ArkDatePicker.View>
+
+                          {/* --- Month View (月表示) --- */}
+                          <ArkDatePicker.View view="month" class="flex flex-col gap-3">
+                            <ArkDatePicker.ViewControl class="flex items-center justify-between">
+                              <ArkDatePicker.PrevTrigger class="hover:bg-zinc-800 p-1 rounded transition-colors text-zinc-200 cursor-pointer">
+                                <ChevronLeftIcon size={18} />
+                              </ArkDatePicker.PrevTrigger>
+                              <ArkDatePicker.ViewTrigger class="hover:bg-zinc-800 px-2 py-1 rounded-md font-medium text-sm transition-colors text-zinc-100 cursor-pointer">
+                                <ArkDatePicker.RangeText />
+                              </ArkDatePicker.ViewTrigger>
+                              <ArkDatePicker.NextTrigger class="hover:bg-zinc-800 p-1 rounded transition-colors text-zinc-200 cursor-pointer">
+                                <ChevronRightIcon size={18} />
+                              </ArkDatePicker.NextTrigger>
+                            </ArkDatePicker.ViewControl>
+
+                            <ArkDatePicker.Table class="w-full">
+                              <ArkDatePicker.TableBody>
+                                <Index each={dp().getMonthsGrid({ columns: 4, format: 'short' })}>
+                                  {(months) => (
+                                    <ArkDatePicker.TableRow class="flex w-full justify-around mb-2">
+                                      <Index each={months()}>
+                                        {(month) => (
+                                          <ArkDatePicker.TableCell value={month().value} class="flex-1 flex justify-center">
+                                            <ArkDatePicker.TableCellTrigger class="px-3 py-1.5 text-sm rounded-md text-zinc-200 hover:bg-zinc-800 transition-colors data-selected:bg-zinc-100 data-selected:text-zinc-950 select-none w-full text-center cursor-pointer">
+                                              {month().label}
+                                            </ArkDatePicker.TableCellTrigger>
+                                          </ArkDatePicker.TableCell>
+                                        )}
+                                      </Index>
+                                    </ArkDatePicker.TableRow>
+                                  )}
+                                </Index>
+                              </ArkDatePicker.TableBody>
+                            </ArkDatePicker.Table>
+                          </ArkDatePicker.View>
+
+                          {/* --- Year View (年表示) --- */}
+                          <ArkDatePicker.View view="year" class="flex flex-col gap-3">
+                            <ArkDatePicker.ViewControl class="flex items-center justify-between">
+                              <ArkDatePicker.PrevTrigger class="hover:bg-zinc-800 p-1 rounded transition-colors text-zinc-200 cursor-pointer">
+                                <ChevronLeftIcon size={18} />
+                              </ArkDatePicker.PrevTrigger>
+                              <ArkDatePicker.ViewTrigger class="hover:bg-zinc-800 px-2 py-1 rounded-md font-medium text-sm transition-colors text-zinc-100 cursor-pointer">
+                                <ArkDatePicker.RangeText />
+                              </ArkDatePicker.ViewTrigger>
+                              <ArkDatePicker.NextTrigger class="hover:bg-zinc-800 p-1 rounded transition-colors text-zinc-200 cursor-pointer">
+                                <ChevronRightIcon size={18} />
+                              </ArkDatePicker.NextTrigger>
+                            </ArkDatePicker.ViewControl>
+
+                            <ArkDatePicker.Table class="w-full">
+                              <ArkDatePicker.TableBody>
+                                <Index each={dp().getYearsGrid({ columns: 4 })}>
+                                  {(years) => (
+                                    <ArkDatePicker.TableRow class="flex w-full justify-around mb-2">
+                                      <Index each={years()}>
+                                        {(year) => (
+                                          <ArkDatePicker.TableCell value={year().value} class="flex-1 flex justify-center">
+                                            <ArkDatePicker.TableCellTrigger class="px-3 py-1.5 text-sm rounded-md text-zinc-200 hover:bg-zinc-800 transition-colors data-selected:bg-zinc-100 data-selected:text-zinc-950 select-none w-full text-center cursor-pointer">
+                                              {year().label}
+                                            </ArkDatePicker.TableCellTrigger>
+                                          </ArkDatePicker.TableCell>
+                                        )}
+                                      </Index>
+                                    </ArkDatePicker.TableRow>
+                                  )}
+                                </Index>
+                              </ArkDatePicker.TableBody>
+                            </ArkDatePicker.Table>
+                          </ArkDatePicker.View>
+                        </>
+                      )}
+                    </ArkDatePicker.Context>
+                  </ArkDatePicker.Content>
+                </ArkDatePicker.Positioner>
+              </Portal>
+
+            </ArkDatePicker.RootProvider>
+          </ArkDateInput.Control>
+          <ArkDateInput.HiddenInput />
+        </ArkDateInput.RootProvider>
+      </LocaleProvider>
     </Field>
   );
 };

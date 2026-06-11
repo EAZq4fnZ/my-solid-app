@@ -8,7 +8,6 @@ export interface FieldProps extends ArkField.RootProps {
   label?: string;
   helperText?: string;
   error?: string;
-  optional?: boolean;
   children: JSX.Element;
 }
 
@@ -22,7 +21,6 @@ export const Field = (props: FieldProps) => {
     'label',
     'helperText',
     'error',
-    'optional',
     'children',
   ]);
   const styles = fieldStyles(); // sharedStyles を継承
@@ -36,9 +34,6 @@ export const Field = (props: FieldProps) => {
       <Show when={local.label}>
         <div class="flex justify-between items-center">
           <ArkField.Label class={styles.label()}>{local.label}</ArkField.Label>
-          <Show when={local.optional}>
-            <span class={styles.oprional()}>任意</span>
-          </Show>
         </div>
       </Show>
 
