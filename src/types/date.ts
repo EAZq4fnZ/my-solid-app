@@ -92,4 +92,15 @@ export interface DateTimeModule {
   now: () => IsoDateTimeString;
 
   isValid: (value: string, mode: 'date' | 'datetime') => boolean;
+
+  fromParts: (
+    year: number,
+    month: number,
+    day: number,
+    hour?: number,
+    minute?: number,
+    second?: number,
+    timezone?: string,
+    mode?: 'date' | 'datetime',
+  ) => IsoDateString | IsoDateTimeString;
 }

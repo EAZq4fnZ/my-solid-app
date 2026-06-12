@@ -2,8 +2,14 @@
 import { splitProps, Index } from 'solid-js';
 import { Portal } from 'solid-js/web';
 
-import { DateInput as ArkDateInput, useDateInput } from '@ark-ui/solid/date-input';
-import { DatePicker as ArkDatePicker, useDatePicker } from '@ark-ui/solid/date-picker';
+import {
+  DateInput as ArkDateInput,
+  useDateInput,
+} from '@ark-ui/solid/date-input';
+import {
+  DatePicker as ArkDatePicker,
+  useDatePicker,
+} from '@ark-ui/solid/date-picker';
 import { LocaleProvider } from '@ark-ui/solid/locale';
 import { CalendarIcon, ChevronLeftIcon, ChevronRightIcon } from 'lucide-solid';
 
@@ -24,7 +30,7 @@ export const DefaultDatePicker = (props: EraDatePickerProps) => {
       'granularity',
       'selectionMode',
       'calendarId',
-      'arkLocale',
+      'locale',
       'timeZone',
       'inputPlaceholder',
     ],
@@ -61,12 +67,11 @@ export const DefaultDatePicker = (props: EraDatePickerProps) => {
       helperText={local.helperText}
       required={local.required}
     >
-      <LocaleProvider locale={local.arkLocale}>
+      <LocaleProvider locale={local.locale}>
         <ArkDateInput.RootProvider value={dateInput}>
           <ArkDateInput.Control class={datePickerStyles.inputGroup()}>
             <ArkDatePicker.RootProvider value={datePicker}>
               <ArkDatePicker.Control class="flex items-center justify-between w-full gap-2">
-                
                 {/* インライン手入力セグメント（和暦ロケール時は自動的に元号入力パーツに変化） */}
                 <ArkDateInput.SegmentGroup class="flex items-center gap-0.5">
                   <ArkDateInput.SegmentContext>
@@ -93,7 +98,10 @@ export const DefaultDatePicker = (props: EraDatePickerProps) => {
                       {(dp) => (
                         <>
                           {/* --- Day View (日表示) --- */}
-                          <ArkDatePicker.View view="day" class="flex flex-col gap-3">
+                          <ArkDatePicker.View
+                            view="day"
+                            class="flex flex-col gap-3"
+                          >
                             <ArkDatePicker.ViewControl class="flex items-center justify-between">
                               <ArkDatePicker.PrevTrigger class="hover:bg-zinc-800 p-1 rounded transition-colors text-zinc-200 cursor-pointer">
                                 <ChevronLeftIcon size={18} />
@@ -124,7 +132,10 @@ export const DefaultDatePicker = (props: EraDatePickerProps) => {
                                     <ArkDatePicker.TableRow class="flex justify-around w-full gap-y-1">
                                       <Index each={week()}>
                                         {(day) => (
-                                          <ArkDatePicker.TableCell value={day()} class="w-8 h-8 flex items-center justify-center">
+                                          <ArkDatePicker.TableCell
+                                            value={day()}
+                                            class="w-8 h-8 flex items-center justify-center"
+                                          >
                                             <ArkDatePicker.TableCellTrigger class="w-7 h-7 text-sm rounded-md flex items-center justify-center text-zinc-200 hover:bg-zinc-800 transition-colors data-selected:bg-zinc-100 data-selected:text-zinc-950 data-disabled:opacity-30 data-disabled:hover:bg-transparent select-none cursor-pointer">
                                               {day().day}
                                             </ArkDatePicker.TableCellTrigger>
@@ -139,7 +150,10 @@ export const DefaultDatePicker = (props: EraDatePickerProps) => {
                           </ArkDatePicker.View>
 
                           {/* --- Month View (月表示) --- */}
-                          <ArkDatePicker.View view="month" class="flex flex-col gap-3">
+                          <ArkDatePicker.View
+                            view="month"
+                            class="flex flex-col gap-3"
+                          >
                             <ArkDatePicker.ViewControl class="flex items-center justify-between">
                               <ArkDatePicker.PrevTrigger class="hover:bg-zinc-800 p-1 rounded transition-colors text-zinc-200 cursor-pointer">
                                 <ChevronLeftIcon size={18} />
@@ -154,12 +168,20 @@ export const DefaultDatePicker = (props: EraDatePickerProps) => {
 
                             <ArkDatePicker.Table class="w-full">
                               <ArkDatePicker.TableBody>
-                                <Index each={dp().getMonthsGrid({ columns: 4, format: 'short' })}>
+                                <Index
+                                  each={dp().getMonthsGrid({
+                                    columns: 4,
+                                    format: 'short',
+                                  })}
+                                >
                                   {(months) => (
                                     <ArkDatePicker.TableRow class="flex w-full justify-around mb-2">
                                       <Index each={months()}>
                                         {(month) => (
-                                          <ArkDatePicker.TableCell value={month().value} class="flex-1 flex justify-center">
+                                          <ArkDatePicker.TableCell
+                                            value={month().value}
+                                            class="flex-1 flex justify-center"
+                                          >
                                             <ArkDatePicker.TableCellTrigger class="px-3 py-1.5 text-sm rounded-md text-zinc-200 hover:bg-zinc-800 transition-colors data-selected:bg-zinc-100 data-selected:text-zinc-950 select-none w-full text-center cursor-pointer">
                                               {month().label}
                                             </ArkDatePicker.TableCellTrigger>
@@ -174,7 +196,10 @@ export const DefaultDatePicker = (props: EraDatePickerProps) => {
                           </ArkDatePicker.View>
 
                           {/* --- Year View (年表示) --- */}
-                          <ArkDatePicker.View view="year" class="flex flex-col gap-3">
+                          <ArkDatePicker.View
+                            view="year"
+                            class="flex flex-col gap-3"
+                          >
                             <ArkDatePicker.ViewControl class="flex items-center justify-between">
                               <ArkDatePicker.PrevTrigger class="hover:bg-zinc-800 p-1 rounded transition-colors text-zinc-200 cursor-pointer">
                                 <ChevronLeftIcon size={18} />
@@ -194,7 +219,10 @@ export const DefaultDatePicker = (props: EraDatePickerProps) => {
                                     <ArkDatePicker.TableRow class="flex w-full justify-around mb-2">
                                       <Index each={years()}>
                                         {(year) => (
-                                          <ArkDatePicker.TableCell value={year().value} class="flex-1 flex justify-center">
+                                          <ArkDatePicker.TableCell
+                                            value={year().value}
+                                            class="flex-1 flex justify-center"
+                                          >
                                             <ArkDatePicker.TableCellTrigger class="px-3 py-1.5 text-sm rounded-md text-zinc-200 hover:bg-zinc-800 transition-colors data-selected:bg-zinc-100 data-selected:text-zinc-950 select-none w-full text-center cursor-pointer">
                                               {year().label}
                                             </ArkDatePicker.TableCellTrigger>
@@ -213,7 +241,6 @@ export const DefaultDatePicker = (props: EraDatePickerProps) => {
                   </ArkDatePicker.Content>
                 </ArkDatePicker.Positioner>
               </Portal>
-
             </ArkDatePicker.RootProvider>
           </ArkDateInput.Control>
           <ArkDateInput.HiddenInput />

@@ -1,12 +1,12 @@
 // src/types/date/withTimeZone.ts
 import { Temporal } from '@js-temporal/polyfill';
 import type {
+  CalendarParts,
+  DateProviderConfig,
   DateTimeModule,
+  EraInfoFetcher,
   IsoDateString,
   IsoDateTimeString,
-  DateProviderConfig,
-  CalendarParts,
-  EraInfoFetcher,
 } from '@/types/date';
 import { EraFormatMode } from '@/types/date';
 import { normalizeJapaneseInput } from '@/utils/string';
@@ -237,6 +237,24 @@ export function createDateTimeModule(
     return tryFromRaw(value, mode as any) !== null;
   };
 
+  const fromParts = (
+    year: number,
+    month: number,
+    day: number,
+    hour: number = 0,
+    minute: number = 0,
+    second: number = 0,
+    timezone: string = config.timezone,
+    mode: 'date' | 'datetime' = 'date',
+  ): IsoDateString | IsoDateTimeString => {
+    const d = `${String(year).padStart(4, '0')}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+    if (mode === 'date') {
+      return tryFromRaw(d, 'date') as IsoDateString;
+    }
+    const dt = `${d}T${String(hour).padStart(2, '0')}:${String(minute).padStart(2, '0')}:${String(second).padStart(2, '0')}[${timezone}]`;
+    return tryFromRaw(dt, 'datetime') as IsoDateTimeString;
+  };
+
   return {
     timezone: config.timezone,
     calendarId: config.calendarId,
@@ -248,5 +266,6 @@ export function createDateTimeModule(
     today,
     now,
     isValid,
+    fromParts,
   };
 }

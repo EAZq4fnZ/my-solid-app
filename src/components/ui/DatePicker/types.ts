@@ -1,34 +1,34 @@
 // src/components/ui/DatePicker/types.ts
 import type { DateValue } from '@ark-ui/solid/date-picker';
+import type { FieldProps } from '../Field';
 
 /**
- * UI層がピュアに扱うカレンダー基本Props
+ * DatePicker の基本的なプロパティ
  */
-export interface DatePickerProps {
-  // 共通 Props(<Fieldset>,<Field>から継承)
-  label?: string;
-  error?: string;
-  helperText?: string;
-  required?: boolean;
-  // <DatePicker> 固有の Props
-  value: DateValue[]; 
-  onValueChange: (value: DateValue[]) => void;
-  granularity?: 'day' | 'minute';
+/** UIコンポーネント上で設定させる プロパティ */
+export interface BaseOptions {
   disabled?: boolean;
   readOnly?: boolean;
+  granularity?: 'day' | 'minute';
   selectionMode?: 'single' | 'multiple';
-}
-
-/**
- * 各暦モジュールからコンポーネントへ引き渡す、暦特化型のDI拡張Props
- * 
- */
-export interface EraDatePickerProps extends DatePickerProps {
+} /** 各カレンダーモジュール のプロパティ */
+export interface ModuleConfig {
   calendarId: string;
   locale: string;
   timeZone: string;
   inputPlaceholder: string;
 }
+/** value,onValueChange などをオーバーライドするときに使用 */
+export interface OverrideProps {
+  value: DateValue[];
+  onValueChange: (value: DateValue[]) => void;
+}
+/** FieldProps,ModuleConfig,OverrideProps,BaseOptions を統合し、これをDatePicker に渡す */
+export interface EraDatePickerProps
+  extends FieldProps,
+    BaseOptions,
+    ModuleConfig,
+    OverrideProps {}
 
 /**
  * 簡易的なUIスタイリング用のクラス定義群
