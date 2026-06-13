@@ -81,29 +81,8 @@ export function createDateTimeModule(
     if (!rawText) return null; // 空文字は無視、null を返す
 
     try {
-      // IIFEによる文字列の整流・JSTへのタイムゾーン変換アジャスト
-      const plain = (() => {
-        // タイムゾーン情報付き日時文字列 → 指定タイムゾーンのPLainDateTimeへ変換
-        if (/\[[A-Za-z_]+\/[A-Za-z_]+\]$/.test(rawText)) {
-          return Temporal.ZonedDateTime.from(rawText)
-            .withTimeZone(config.timezone)
-            .toPlainDateTime()
-            .toString();
-        }
-        // 時差オフセット付き日時文字列 → 指定タイムゾーンのPLainDateTimeへ変換
-        if (/(?:Z|[+-]\d{2}:\d{2})$/.test(rawText)) {
-          return Temporal.Instant.from(rawText)
-            .toZonedDateTimeISO(config.timezone)
-            .toPlainDateTime()
-            .toString();
-        }
-        // 日時文字列 → 日・時刻間スペースに「T」を挿入して 指定タイムゾーンのPLainDateTimeへ変換
-        const isoFormated = rawText.replace(' ', 'T');
-        return Temporal.PlainDateTime.from(isoFormated).toString();
-      })();
-
       // 各プロバイダでの文字列クレンジング、元号・和暦➔西暦数値への翻訳
-      const { year, month, day, timeParts } = config.parser(plain);
+      const { year, month, day, timeParts } = config.parser(rawText);
 
       if (year === null || month === null || day === null) {
         return null;
