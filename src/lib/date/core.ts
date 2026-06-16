@@ -81,6 +81,7 @@ export function createDateTimeModule(
     if (!rawText) return null; // 空文字は無視、null を返す
 
     try {
+<<<<<<< HEAD
       // IIFEによる文字列の整流・JSTへのタイムゾーン変換アジャスト
       const plain = (() => {
         // タイムゾーン情報付き日時文字列 → 指定タイムゾーンのPLainDateTimeへ変換
@@ -106,6 +107,11 @@ export function createDateTimeModule(
       // 各プロバイダでの文字列クレンジング、元号・和暦➔西暦数値への翻訳
       const { year, month, day, timeParts } = config.parser(plain);
       // 年・月・日が揃わない場合は不完全な入力があったとして null を返す
+=======
+      // 各プロバイダでの文字列クレンジング、元号・和暦➔西暦数値への翻訳
+      const { year, month, day, timeParts } = config.parser(rawText);
+
+>>>>>>> fb151efc0025664f270d78e91552c7cfc0dd314b
       if (year === null || month === null || day === null) {
         return null;
       }
