@@ -102,5 +102,5 @@ export interface DateTimeModule {
     second?: number,
     timezone?: string,
     mode?: 'date' | 'datetime',
-  ) => IsoDateString | IsoDateTimeString;
+  ) => IsoDateString | IsoDateTimeString | null;
 }

@@ -38,6 +38,8 @@ export const dateUtils = {
   isValid: (value: string): boolean => activeDateModule.isValid(value, 'date'),
   tryFromRaw: (value: string): IsoDateString | null =>
     activeDateModule.tryFromRaw(value, 'date'),
+  fromParts: (y: number, mm: number, d: number,timezone: string,): IsoDateString | null => 
+      activeDateModule.fromParts(y, mm, d, 0,0,0,timezone, 'date') as IsoDateString | null,
 };
 
 /** 任意の文字列が正しい日時型(IsoDateTimeString)にパース可能か検証・変換するユーティリティ */
@@ -46,6 +48,9 @@ export const dateTimeUtils = {
     activeDateModule.isValid(value, 'datetime'),
   tryFromRaw: (value: string): IsoDateTimeString | null =>
     activeDateModule.tryFromRaw(value, 'datetime'),
+  fromParts: (y: number, mm: number, d: number,
+    h: number, m: number, s: number, timezone: string): IsoDateTimeString | null => 
+      activeDateModule.fromParts(y, mm, d, h, m, s, timezone, 'datetime') as IsoDateTimeString | null,
 };
 
 // --- ArkType パイプラインスキーマ（TanStack Formなどのバリデーション用） ---
@@ -53,12 +58,13 @@ export const dateTimeUtils = {
 export const isoDateSchema = type('string').pipe((s, ctx) => {
   const result = dateUtils.tryFromRaw(s);
   if(result) return result as IsoDateString;
-  return ctx.error('正しい日付を入力してください(例: 2026/05/31, 令和8年5月31日)');
+  return ctx.error('正しい日付を入力してください(例: 2026/05/31)');
 });
 
 /** ユーザーの自由な入力を、安全に `IsoDateTimeString` ブランド型へ昇格させるスキーマ */
+//
 export const isoDateTimeSchema = type('string').pipe((s, ctx) => {
   const result = dateTimeUtils.tryFromRaw(s);
   if(result) return result as IsoDateTimeString;
-  return ctx.error('正しい日時を入力してください(例: 2026/05/31 14:30, 令和8年5月31日 14時30分)');
+  return ctx.error('正しい日時を入力してください(例: 2026/05/31 14:30)');
 });

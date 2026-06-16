@@ -98,34 +98,36 @@ export function createDateTimeModule(
             .toString();
         }
         // 日時文字列 → 日・時刻間スペースに「T」を挿入して 指定タイムゾーンのPLainDateTimeへ変換
-        const isoFormated = rawText.replace(' ', 'T');
+        //const isoFormated = rawText.replace(' ', 'T');
+        const isoFormated = `${rawText}[${config.timezone}]`;
         return Temporal.PlainDateTime.from(isoFormated).toString();
       })();
 
       // 各プロバイダでの文字列クレンジング、元号・和暦➔西暦数値への翻訳
       const { year, month, day, timeParts } = config.parser(plain);
-
+      // 年・月・日が揃わない場合は不完全な入力があったとして null を返す
       if (year === null || month === null || day === null) {
         return null;
       }
 
       if (mode === 'date') {
-        // 一旦 PlainDate へ変換することで、日付の正規化・妥当性の検証
+        // 一旦 PlainDate へ変換、日付の正規化・妥当性の検証
         return Temporal.PlainDate.from({
           year,
           month,
           day,
         }).toString() as IsoDateString;
       }
-
+      // ↓ datetime モードの場合
       const rawHour = timeParts[0] as number;
       const rawMinute = timeParts[1] as number;
       const rawSecond = timeParts[2];
-
+      // 時・分が欠けている場合は不完全な入力があったとして null を返す
+      // 秒はオプショナルとする (UIからの入力は分まで)（例: "2026/05/31 14:30" を許容）
       if (rawHour == null || rawMinute == null) {
         return null;
       }
-
+      // 一旦 ZonedDateTime へ変換することで、日付の正規化・妥当性の検証
       const datetime = Temporal.ZonedDateTime.from({
         year,
         month,
@@ -135,7 +137,7 @@ export function createDateTimeModule(
         second: rawSecond ?? 0,
         timeZone: config.timezone,
       });
-      // 一旦 PlainDatetime へ変換することで、日付の正規化・妥当性の検証
+      
       return datetime.toString({
         calendarName: 'never',
         offset: 'auto',
@@ -237,8 +239,7 @@ export function createDateTimeModule(
     return tryFromRaw(value, mode as any) !== null;
   };
 
-  const fromParts = (
-    year: number,
+  function fromParts (year: number,
     month: number,
     day: number,
     hour: number = 0,
@@ -246,7 +247,7 @@ export function createDateTimeModule(
     second: number = 0,
     timezone: string = config.timezone,
     mode: 'date' | 'datetime' = 'date',
-  ): IsoDateString | IsoDateTimeString => {
+  ): IsoDateString | IsoDateTimeString | null {
     const d = `${String(year).padStart(4, '0')}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
     if (mode === 'date') {
       return tryFromRaw(d, 'date') as IsoDateString;
