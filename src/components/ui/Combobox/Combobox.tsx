@@ -1,13 +1,37 @@
 // src/components/ui/Combobox/Combobox.tsx
 import { Combobox as ArkCombo, createListCollection } from '@ark-ui/solid';
 import { ChevronDownIcon, XIcon } from 'lucide-solid';
-import { For, Show, createMemo, splitProps } from 'solid-js';
+import { For, Show, createMemo, type JSX } from 'solid-js';
 import { Portal } from 'solid-js/web';
 import { tv } from 'tailwind-variants';
 
-import { Field } from '../Field';
+import { Field, type FieldInfo, type CommonStatus } from '../Field';
 import { fieldStyles } from '../sharedStyles';
-import type { ComboboxParts } from './types';
+
+// Combobox特有の設定型を定義（昨日合意した構造）
+export interface ComboboxConfig<T> {
+  items: T[];
+  isPending?: boolean;
+  renderItem: (item: T) => JSX.Element;
+  itemToString?: (item: T) => string;
+  itemToValue?: (item: T) => string;
+  onInputValueChange?: (details: { inputValue: string }) => void;
+}
+
+// 状態管理用（仮）
+export interface ComboboxState<T> {
+  value?: string[];
+  onValueChange?: (details: { value: string[]; items: T[] }) => void;
+}
+
+// 構造化されたProps
+export interface ComboboxRootProps<T> {
+  field: FieldInfo;
+  status: CommonStatus;
+  state: ComboboxState<T>;
+  config: ComboboxConfig<T>;
+  className?: string;
+}
 
 export const comboboxStyles = tv({
   extend: fieldStyles,
@@ -18,103 +42,69 @@ export const comboboxStyles = tv({
       'flex h-11 w-full rounded-md border border-zinc-700 bg-zinc-800 px-3 py-2 text-zinc-100',
       'focus:ring-2 focus:ring-zinc-500 outline-none transition-all placeholder:text-zinc-500',
     ],
-    trigger:
-      'absolute right-3 text-zinc-500 hover:text-zinc-100 cursor-pointer z-10',
-    clearTrigger:
-      'absolute right-10 text-zinc-500 hover:text-zinc-400 cursor-pointer z-10',
+    trigger: 'absolute right-3 text-zinc-500 hover:text-zinc-100 cursor-pointer z-10',
+    clearTrigger: 'absolute right-10 text-zinc-500 hover:text-zinc-400 cursor-pointer z-10',
     positioner: 'z-50',
-    content:
-      'bg-zinc-800 border border-zinc-700 rounded-md p-1 flex flex-col gap-1 max-h-64 overflow-y-auto min-w-[var(--reference-width)] shadow-xl',
+    content: 'bg-zinc-800 border border-zinc-700 rounded-md p-1 flex flex-col gap-1 max-h-64 overflow-y-auto min-w-[var(--reference-width)] shadow-xl',
     item: 'flex items-center justify-between px-2.5 py-2 rounded-md cursor-pointer text-sm text-zinc-300 hover:bg-zinc-700 hover:text-zinc-100 data-[selected]:bg-zinc-700 data-[selected]:text-zinc-100 transition-colors',
     loading: 'px-3 py-2 text-sm text-zinc-500 animate-pulse',
   },
 });
 
-export interface ComboboxRootProps<T> extends ComboboxParts<T> {
-  items: T[];
-  label: string;
-  error?: string;
-  isPending?: boolean;
-  placeholder?: string;
-  value?: string[];
-  onValueChange?: (details: { value: string[]; items: T[] }) => void;
-  onInputValueChange?: (details: { inputValue: string }) => void;
-  disabled?: boolean;
-  invalid?: boolean;
-}
-
 export const ComboboxRoot = <T,>(props: ComboboxRootProps<T>) => {
-  const [local, variantProps, restProps] = splitProps(
-    props,
-    [
-      'items',
-      'label',
-      'error',
-      'isPending',
-      'renderItem',
-      'itemToString',
-      'itemToValue',
-      'placeholder',
-    ],
-    ['disabled', 'invalid'],
-  );
-
   const collection = createMemo(() =>
     createListCollection({
-      items: local.items ?? [],
-      itemToString: local.itemToString,
-      itemToValue: local.itemToValue,
+      items: props.config.items ?? [],
+      itemToString: props.config.itemToString,
+      itemToValue: props.config.itemToValue,
     }),
   );
 
-  /**
-   * Tailwind Variants を使用してスタイルを定義します。
-   * 拡張元 (fieldStyles) が期待している型が string | number であるため、
-   * 条件を満たす場合はリテラル文字列 'true' を型安全にアサーション (as 'true') して渡します。
-   */
   const styles = comboboxStyles({
-    disabled: variantProps.disabled ? ('true' as 'true') : undefined,
-    invalid: variantProps.invalid ? ('true' as 'true') : undefined,
+    disabled: props.status.disabled ? ('true' as 'true') : undefined,
+    invalid: props.status.invalid ? ('true' as 'true') : undefined,
   });
 
   return (
-    <Field label={local.label} error={local.error}>
+    // 分解せず、構造化したオブジェクトをそのまま Field へ渡す
+    <Field field={props.field} status={props.status} className={props.className}>
       <ArkCombo.Root
-        // biome-ignore lint/suspicious/noExplicitAny: SolidJS と Ark UI 間のシグナル結合による内部型ミスマッチを回避するため any へキャスト
-        {...(restProps as any)}
         collection={collection()}
-        disabled={variantProps.disabled}
-        invalid={variantProps.invalid}
-        class={styles.root()}
+        value={props.state.value}
+        onValueChange={props.state.onValueChange}
+        onInputValueChange={props.config.onInputValueChange}
+        disabled={props.status.disabled}
+        invalid={props.status.invalid}
+        className={styles.root()}
       >
-        <ArkCombo.Control class={styles.control()}>
+        <ArkCombo.Control className={styles.control()}>
           <ArkCombo.Input
-            placeholder={local.placeholder}
-            class={styles.input()}
+            placeholder={props.field.placeholder}
+            className={styles.input()}
           />
-          <Show when={props.value && props.value.length > 0}>
-            <ArkCombo.ClearTrigger class={styles.clearTrigger()}>
+          <Show when={props.state.value && props.state.value.length > 0}>
+            <ArkCombo.ClearTrigger className={styles.clearTrigger()}>
               <XIcon size={14} />
             </ArkCombo.ClearTrigger>
           </Show>
-          <ArkCombo.Trigger class={styles.trigger()}>
+          <ArkCombo.Trigger className={styles.trigger()}>
             <ChevronDownIcon size={16} />
           </ArkCombo.Trigger>
         </ArkCombo.Control>
 
         <Portal>
-          <ArkCombo.Positioner class={styles.positioner()}>
-            <ArkCombo.Content class={styles.content()}>
-              <Show when={local.isPending}>
-                <div class={styles.loading()}>検索中...</div>
+          <ArkCombo.Positioner className={styles.positioner()}>
+            <ArkCombo.Content className={styles.content()}>
+              <Show when={props.config.isPending}>
+                <div className={styles.loading()}>検索中...</div>
               </Show>
 
               <ArkCombo.ItemGroup>
                 <For each={collection().items}>
                   {(item) => (
-                    <ArkCombo.Item item={item} class={styles.item()}>
+                    <ArkCombo.Item item={item} className={styles.item()}>
                       <ArkCombo.ItemText>
-                        {local.renderItem(item)}
+                        {props.config.renderItem(item)}
                       </ArkCombo.ItemText>
                     </ArkCombo.Item>
                   )}

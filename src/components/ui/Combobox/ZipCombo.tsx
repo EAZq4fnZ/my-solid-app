@@ -1,77 +1,78 @@
 // src/components/ui/Combobox/ZipCombo.tsx
 import type { ComboboxInputValueChangeDetails } from '@ark-ui/solid';
-import { createMemo, splitProps } from 'solid-js';
+import { createMemo } from 'solid-js';
 
 import type { StAddrInfo } from '@/types/zip';
 import { useZip } from '@/lib/zip/useZip';
-import { ComboboxRoot } from './Combobox';
+import { ComboboxRoot, type ComboboxRootProps } from './Combobox'; // FieldInfoをインポートするため
+import type { FieldInfo } from '../Field';
 
 interface ZipComboProps {
-  // biome-ignore lint/suspicious/noExplicitAny: TanStack Form の型推論維持のため
   form: any;
   name: string;
   targetName: string;
-  label: string;
-  placeholder?: string;
+  field: FieldInfo; 
+  className?: string;
+  onInputValueChange?: (details: ComboboxInputValueChangeDetails) => void;
 }
 
 export const ZipCombo = (props: ZipComboProps) => {
-  const [local, rest] = splitProps(props, [
-    'form',
-    'name',
-    'targetName',
-    'label',
-    'placeholder',
-  ]);
-
   const { setInputValue, suggestions, isPending } = useZip();
 
   const safeItems = createMemo((): StAddrInfo[] => {
-  const res = suggestions(); // 内部で suggestions() を呼んでいるため、依存関係が正しく追従される
-  if (!res) return [];
-  if (typeof res === 'object' && 'success' in res) {
-    return res.success && Array.isArray(res.data) ? res.data : [];
-  }
-  return Array.isArray(res) ? res : [];
-});
+    const res = suggestions();
+    if (!res) return [];
+    if (typeof res === 'object' && 'success' in res) {
+      return res.success && Array.isArray(res.data) ? res.data : [];
+    }
+    return Array.isArray(res) ? res : [];
+  });
 
   const handleSelectionChange = (details: { items: StAddrInfo[] }) => {
     const selectedItem = details.items[0];
     if (selectedItem) {
-      local.form.setFieldValue(local.name, selectedItem.addrParts.zipCode);
-      local.form.setFieldValue(local.targetName, selectedItem.fullAddress);
+      props.form.setFieldValue(props.name, selectedItem.addrParts.zipCode);
+      props.form.setFieldValue(props.targetName, selectedItem.fullAddress);
     }
   };
 
   return (
-    <local.form.Field name={local.name}>
-      {/* biome-ignore lint/suspicious/noExplicitAny: Form internal context key */}
+    <props.form.Field name={props.name}>
       {(field: any) => (
         <ComboboxRoot<StAddrInfo>
-          {...rest}
-          label={local.label}
-          placeholder={local.placeholder ?? '000-0000'}
-          error={field.state.meta.errors[0]?.toString()}
-          items={safeItems()}
-          isPending={isPending}
-          onInputValueChange={(d: ComboboxInputValueChangeDetails) =>
-            setInputValue(d.inputValue)
-          }
-          onValueChange={handleSelectionChange}
-          itemToString={(item) => item.addrParts.zipCode}
-          itemToValue={(item) => item.addrParts.zipCode}
-          renderItem={(item) => (
-            <div class="flex flex-col gap-0.5 w-full">
-              <span class="font-mono font-bold text-zinc-100">
-                {item.addrParts.zipCode}
-              </span>
-              <span class="text-xs text-zinc-400 truncate">
-                {item.fullAddress}
-              </span>
-            </div>
-          )}
-        />
+          className={props.className}
+          field={{
+            label: props.field.label??'郵便番号',
+            placeholder: props.field.placeholder??'000-0000',
+            error: field.state.meta.errors[0]?.toString(),
+          }}
+          status={{
+            invalid: field.state.meta.errors.length > 0,
+          }}
+          state={{
+            onValueChange: handleSelectionChange,
+          }}
+          config={{
+    items: safeItems(),
+    isPending: isPending,
+    itemToString: (item) => item.addrParts.zipCode,
+    itemToValue: (item) => item.addrParts.zipCode,
+    renderItem: (item) => (
+      <div className="flex flex-col gap-0.5 w-full">
+        <span className="font-mono font-bold text-zinc-100">
+          {item.addrParts.zipCode}
+        </span>
+        <span className="text-xs text-zinc-400">{item.fullAddress}</span>
+      </div>
+    ),
+    // ここに移動させます
+    onInputValueChange: (d: { inputValue: string }) => {
+      setInputValue(d.inputValue);
+      props.onInputValueChange?.(d);
+    },
+  }}
+/>
       )}
-    </local.form.Field>
+    </props.form.Field>
   );
 };

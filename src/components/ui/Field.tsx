@@ -1,59 +1,64 @@
 // components/ui/Field.tsx
 import { Field as ArkField } from '@ark-ui/solid';
 import { type JSX, Show, splitProps } from 'solid-js';
-
 import { fieldStyles } from './sharedStyles';
 
-export interface FieldProps extends ArkField.RootProps {
+/** コンポーネントの状態 */
+export interface CommonStatus {
+  disabled?: boolean;
+  invalid?: boolean;
+  readOnly?: boolean;
+  required?: boolean;
+}
+
+/** UI表示項目 */
+export interface FieldInfo {
   label?: string;
   helperText?: string;
   error?: string;
-  children: JSX.Element;
+  placeholder?: string;
 }
 
-/**
- * Ark UI の Field.Root を使用した基底コンポーネント。
- * コンポーネント内のすべての要素（Label, Input, ErrorText）に対し、
- * 自動的にアクセシビリティ属性（id, for, aria-describedby等）を紐付けます。
- */
+/** FieldProps */
+export interface FieldProps {
+  field: FieldInfo;
+  status: CommonStatus;
+  children: JSX.Element;
+  className?: string;
+}
+
 export const Field = (props: FieldProps) => {
-  const [local, rootProps] = splitProps(props, [
-    'label',
-    'helperText',
-    'error',
-    'children',
-  ]);
-  const styles = fieldStyles(); // sharedStyles を継承
+  const styles = fieldStyles();
 
   return (
     <ArkField.Root
-      invalid={!!local.error} // errorがある場合はinvalidにする
-      {...rootProps}
-      class="flex flex-col gap-1.5 w-full"
+      // 状態を明示的に Ark UI へ注入
+      invalid={props.status.invalid}
+      disabled={props.status.disabled}
+      readOnly={props.status.readOnly}
+      required={props.status.required}
+      class={styles.root({ class: props.className })}
     >
-      <Show when={local.label}>
+      <Show when={props.field.label}>
         <div class="flex justify-between items-center">
-          <ArkField.Label class={styles.label()}>{local.label}</ArkField.Label>
+          <ArkField.Label class={styles.label()}>{props.field.label}</ArkField.Label>
         </div>
       </Show>
 
-      {/*<Show when={local.description}>*/}
-      <ArkField.HelperText class={styles.helperText()}>
-        {local.helperText}
-      </ArkField.HelperText>
-      {/*</Show>*/}
+      <Show when={props.field.helperText}>
+        <ArkField.HelperText class={styles.helperText()}>
+          {props.field.helperText}
+        </ArkField.HelperText>
+      </Show>
 
-      {/* children (Input や EraDatePicker) が入る。
-         Ark UI の Field.Root のコンテキスト下にあるため、
-         内部の input 要素は自動的に ID や invalid 状態を継承します。
-      */}
-      {local.children}
+      {/* 入力コンポーネント本体 (Combobox等) */}
+      {props.children}
 
-      {/*<Show when={local.error}>*/}
-      <ArkField.ErrorText class={styles.errorText()}>
-        {local.error}
-      </ArkField.ErrorText>
-      {/*</Show>*/}
+      <Show when={props.field.error}>
+        <ArkField.ErrorText class={styles.errorText()}>
+          {props.field.error}
+        </ArkField.ErrorText>
+      </Show>
     </ArkField.Root>
   );
 };
