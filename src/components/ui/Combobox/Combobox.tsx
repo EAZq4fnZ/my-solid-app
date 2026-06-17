@@ -42,10 +42,13 @@ export const comboboxStyles = tv({
       'flex h-11 w-full rounded-md border border-zinc-700 bg-zinc-800 px-3 py-2 text-zinc-100',
       'focus:ring-2 focus:ring-zinc-500 outline-none transition-all placeholder:text-zinc-500',
     ],
-    trigger: 'absolute right-3 text-zinc-500 hover:text-zinc-100 cursor-pointer z-10',
-    clearTrigger: 'absolute right-10 text-zinc-500 hover:text-zinc-400 cursor-pointer z-10',
+    trigger:
+      'absolute right-3 text-zinc-500 hover:text-zinc-100 cursor-pointer z-10',
+    clearTrigger:
+      'absolute right-10 text-zinc-500 hover:text-zinc-400 cursor-pointer z-10',
     positioner: 'z-50',
-    content: 'bg-zinc-800 border border-zinc-700 rounded-md p-1 flex flex-col gap-1 max-h-64 overflow-y-auto min-w-[var(--reference-width)] shadow-xl',
+    content:
+      'bg-zinc-800 border border-zinc-700 rounded-md p-1 flex flex-col gap-1 max-h-64 overflow-y-auto min-w-[var(--reference-width)] shadow-xl',
     item: 'flex items-center justify-between px-2.5 py-2 rounded-md cursor-pointer text-sm text-zinc-300 hover:bg-zinc-700 hover:text-zinc-100 data-[selected]:bg-zinc-700 data-[selected]:text-zinc-100 transition-colors',
     loading: 'px-3 py-2 text-sm text-zinc-500 animate-pulse',
   },
@@ -67,7 +70,11 @@ export const ComboboxRoot = <T,>(props: ComboboxRootProps<T>) => {
 
   return (
     // 分解せず、構造化したオブジェクトをそのまま Field へ渡す
-    <Field field={props.field} status={props.status} className={props.className}>
+    <Field
+      field={props.field}
+      status={props.status}
+      className={props.className}
+    >
       <ArkCombo.Root
         collection={collection()}
         value={props.state.value}
@@ -75,34 +82,34 @@ export const ComboboxRoot = <T,>(props: ComboboxRootProps<T>) => {
         onInputValueChange={props.config.onInputValueChange}
         disabled={props.status.disabled}
         invalid={props.status.invalid}
-        className={styles.root()}
+        class={styles.root()}
       >
-        <ArkCombo.Control className={styles.control()}>
+        <ArkCombo.Control class={styles.control()}>
           <ArkCombo.Input
             placeholder={props.field.placeholder}
-            className={styles.input()}
+            class={styles.input()}
           />
           <Show when={props.state.value && props.state.value.length > 0}>
-            <ArkCombo.ClearTrigger className={styles.clearTrigger()}>
+            <ArkCombo.ClearTrigger class={styles.clearTrigger()}>
               <XIcon size={14} />
             </ArkCombo.ClearTrigger>
           </Show>
-          <ArkCombo.Trigger className={styles.trigger()}>
+          <ArkCombo.Trigger class={styles.trigger()}>
             <ChevronDownIcon size={16} />
           </ArkCombo.Trigger>
         </ArkCombo.Control>
 
         <Portal>
-          <ArkCombo.Positioner className={styles.positioner()}>
-            <ArkCombo.Content className={styles.content()}>
+          <ArkCombo.Positioner class={styles.positioner()}>
+            <ArkCombo.Content class={styles.content()}>
               <Show when={props.config.isPending}>
-                <div className={styles.loading()}>検索中...</div>
+                <div class={styles.loading()}>検索中...</div>
               </Show>
 
               <ArkCombo.ItemGroup>
                 <For each={collection().items}>
                   {(item) => (
-                    <ArkCombo.Item item={item} className={styles.item()}>
+                    <ArkCombo.Item item={item} class={styles.item()}>
                       <ArkCombo.ItemText>
                         {props.config.renderItem(item)}
                       </ArkCombo.ItemText>

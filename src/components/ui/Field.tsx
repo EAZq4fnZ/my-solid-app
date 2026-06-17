@@ -1,6 +1,6 @@
 // components/ui/Field.tsx
 import { Field as ArkField } from '@ark-ui/solid';
-import { type JSX, Show, splitProps } from 'solid-js';
+import { type JSX, Show } from 'solid-js';
 import { fieldStyles } from './sharedStyles';
 
 /** コンポーネントの状態 */
@@ -37,16 +37,18 @@ export const Field = (props: FieldProps) => {
       disabled={props.status.disabled}
       readOnly={props.status.readOnly}
       required={props.status.required}
-      className={styles.root({ class: props.className })}
+      class={styles.root({ class: props.className })}
     >
       <Show when={props.field.label}>
-        <div className="flex justify-between items-center">
-          <ArkField.Label className={styles.label()}>{props.field.label}</ArkField.Label>
+        <div class="flex justify-between items-center">
+          <ArkField.Label class={styles.label()}>
+            {props.field.label}
+          </ArkField.Label>
         </div>
       </Show>
 
       <Show when={props.field.helperText}>
-        <ArkField.HelperText className={styles.helperText()}>
+        <ArkField.HelperText class={styles.helperText()}>
           {props.field.helperText}
         </ArkField.HelperText>
       </Show>
@@ -55,7 +57,7 @@ export const Field = (props: FieldProps) => {
       {props.children}
 
       <Show when={props.field.error}>
-        <ArkField.ErrorText className={styles.errorText()}>
+        <ArkField.ErrorText class={styles.errorText()}>
           {props.field.error}
         </ArkField.ErrorText>
       </Show>

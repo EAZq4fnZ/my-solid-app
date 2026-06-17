@@ -25,6 +25,7 @@ export const selectStyles = tv({
 
 type SelectVariants = VariantProps<typeof selectStyles>;
 interface SelectProps
+  // biome-ignore lint/suspicious/noExplicitAny: Ark UI v3 仕様
   extends Omit<ArkSelect.RootProps<any>, 'collection'>,
     SelectVariants {
   label?: string;

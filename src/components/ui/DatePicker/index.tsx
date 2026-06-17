@@ -1,11 +1,7 @@
 // src/lib/date/index.ts
+import { BaseOptions } from 'solid-js/types/reactive/signal.js';
 import type { FieldProps } from '../Field';
-import type {
-  BaseOptions,
-  EraDatePickerProps,
-  ModuleConfig,
-  OverrideProps,
-} from './types';
+import { EraDatePickerProps } from './types';
 
 export const createEraProps = (
   fieldProps: FieldProps,
