@@ -53,25 +53,24 @@ export const ZipCombo = (props: ZipComboProps) => {
             onValueChange: handleSelectionChange,
           }}
           config={{
-    items: safeItems(),
-    isPending: isPending,
-    itemToString: (item) => item.addrParts.zipCode,
-    itemToValue: (item) => item.addrParts.zipCode,
-    renderItem: (item) => (
-      <div className="flex flex-col gap-0.5 w-full">
-        <span className="font-mono font-bold text-zinc-100">
-          {item.addrParts.zipCode}
-        </span>
-        <span className="text-xs text-zinc-400">{item.fullAddress}</span>
-      </div>
-    ),
-    // ここに移動させます
-    onInputValueChange: (d: { inputValue: string }) => {
-      setInputValue(d.inputValue);
-      props.onInputValueChange?.(d);
-    },
-  }}
-/>
+            items: safeItems(),
+            isPending: isPending,
+            itemToString: (item) => item.addrParts.zipCode,
+            itemToValue: (item) => item.addrParts.zipCode,
+            renderItem: (item) => (
+              <div className="flex flex-col gap-0.5 w-full">
+                <span className="font-mono font-bold text-zinc-100">
+                  {item.addrParts.zipCode}
+                </span>
+                <span className="text-xs text-zinc-400">{item.fullAddress}</span>
+              </div>
+            ),
+            onInputValueChange: (d: { inputValue: string }) => {
+              setInputValue(d.inputValue);
+              props.onInputValueChange?.(d);
+            },
+          }}
+        />
       )}
     </props.form.Field>
   );

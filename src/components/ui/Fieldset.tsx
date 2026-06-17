@@ -4,60 +4,60 @@ import { type JSX, Show, splitProps } from 'solid-js';
 
 import { fieldStyles } from './sharedStyles';
 
+
+/** コンポーネントの状態 */
+export interface CommonStatus {
+  disabled?: boolean;
+  invalid?: boolean;
+  readOnly?: boolean;
+  required?: boolean;
+}
 // interface FieldSetProps
-export interface FieldSetProps extends ArkFieldset.RootProps {
+export interface FieldSetInfo {
   label?: string;
   helperText?: string;
   error?: string;
-  children: JSX.Element;
 }
 
-/**
- * @description
- * Ark UI の FieldSet.Root を使用した基底コンポーネント。
- * コンポーネント内のすべての要素（Label, Input, ErrorText）に対し、
- * 自動的にアクセシビリティ属性（id, for, aria-describedby等）を紐付けます。
- * @param props FieldSetProps
- * @returns JSX.Element(Ark UI の FieldSet.Root を使用したコンポーネント。Ark UI の他コンポーネントをこれでラップさせる)
- */
+export interface FieldSetProps {
+  fieldSet: FieldSetInfo;
+  status: CommonStatus;
+  children: JSX.Element;
+  className?: string;
+}
 export const FieldSet = (props: FieldSetProps) => {
-  const [local, rootProps] = splitProps(props, [
-    'label',
-    'error',
-    'helperText',
-    'children',
-  ]);
+
   const styles = fieldStyles(); // sharedStyles を継承
 
   return (
     <ArkFieldset.Root
-      invalid={!!local.error} //error がある場合はinvalidにする
-      {...rootProps}
-      class="flex flex-col gap-4 w-full border-none p-0 m-0"
+      invalid={props.status.invalid}
+      className={styles.root({ class: props.className })}
     >
-      <Show when={local.label}>
-        <div class="flex justify-between items-center mb-1">
-          <ArkFieldset.Legend class={styles.label()}>
-            {local.label}
+      <Show when={props.fieldSet.label}>
+        <div className="flex justify-between items-center mb-1">
+          <ArkFieldset.Legend className={styles.label()}>
+            {props.fieldSet.label}
           </ArkFieldset.Legend>
         </div>
       </Show>
-      {/*<Show when={local.description}>*/}
-      <ArkFieldset.HelperText class={styles.helperText()}>
-        {local.helperText}
+
+      <Show when={props.fieldSet.helperText}>
+      <ArkFieldset.HelperText className={styles.helperText()}>
+        {props.fieldSet.helperText}
       </ArkFieldset.HelperText>
-      {/*</Show>*/}
+      </Show>
 
       {/* 複数の Field コンポーネントがここに入ります。
           スペースを空けるためのラッパー div を配置 
       */}
-      <div class="flex flex-col gap-4">{local.children}</div>
+      <div className="flex flex-col gap-4">{props.children}</div>
 
-      {/*<Show when={local.error}>*/}
-      <ArkFieldset.ErrorText class={styles.errorText()}>
-        {local.error}
+      <Show when={props.fieldSet.error}>
+      <ArkFieldset.ErrorText className={styles.errorText()}>
+        {props.fieldSet.error}
       </ArkFieldset.ErrorText>
-      {/*</Show>*/}
+      </Show>
     </ArkFieldset.Root>
   );
 };

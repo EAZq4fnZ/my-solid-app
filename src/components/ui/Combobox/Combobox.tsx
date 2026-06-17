@@ -11,7 +11,7 @@ import { fieldStyles } from '../sharedStyles';
 // Combobox特有の設定型を定義（昨日合意した構造）
 export interface ComboboxConfig<T> {
   items: T[];
-  isPending?: boolean;
+  isPending?: boolean | (() => boolean);
   renderItem: (item: T) => JSX.Element;
   itemToString?: (item: T) => string;
   itemToValue?: (item: T) => string;

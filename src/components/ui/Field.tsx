@@ -37,16 +37,16 @@ export const Field = (props: FieldProps) => {
       disabled={props.status.disabled}
       readOnly={props.status.readOnly}
       required={props.status.required}
-      class={styles.root({ class: props.className })}
+      className={styles.root({ class: props.className })}
     >
       <Show when={props.field.label}>
-        <div class="flex justify-between items-center">
-          <ArkField.Label class={styles.label()}>{props.field.label}</ArkField.Label>
+        <div className="flex justify-between items-center">
+          <ArkField.Label className={styles.label()}>{props.field.label}</ArkField.Label>
         </div>
       </Show>
 
       <Show when={props.field.helperText}>
-        <ArkField.HelperText class={styles.helperText()}>
+        <ArkField.HelperText className={styles.helperText()}>
           {props.field.helperText}
         </ArkField.HelperText>
       </Show>
@@ -55,7 +55,7 @@ export const Field = (props: FieldProps) => {
       {props.children}
 
       <Show when={props.field.error}>
-        <ArkField.ErrorText class={styles.errorText()}>
+        <ArkField.ErrorText className={styles.errorText()}>
           {props.field.error}
         </ArkField.ErrorText>
       </Show>
