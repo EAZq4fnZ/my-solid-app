@@ -82,34 +82,34 @@ export const ComboboxRoot = <T,>(props: ComboboxRootProps<T>) => {
         onInputValueChange={props.config.onInputValueChange}
         disabled={props.status.disabled}
         invalid={props.status.invalid}
-        class={styles.root()}
+        className={styles.root()}
       >
-        <ArkCombo.Control class={styles.control()}>
+        <ArkCombo.Control className={styles.control()}>
           <ArkCombo.Input
             placeholder={props.field.placeholder}
-            class={styles.input()}
+            className={styles.input()}
           />
           <Show when={props.state.value && props.state.value.length > 0}>
-            <ArkCombo.ClearTrigger class={styles.clearTrigger()}>
+            <ArkCombo.ClearTrigger className={styles.clearTrigger()}>
               <XIcon size={14} />
             </ArkCombo.ClearTrigger>
           </Show>
-          <ArkCombo.Trigger class={styles.trigger()}>
+          <ArkCombo.Trigger className={styles.trigger()}>
             <ChevronDownIcon size={16} />
           </ArkCombo.Trigger>
         </ArkCombo.Control>
 
         <Portal>
-          <ArkCombo.Positioner class={styles.positioner()}>
-            <ArkCombo.Content class={styles.content()}>
+          <ArkCombo.Positioner className={styles.positioner()}>
+            <ArkCombo.Content className={styles.content()}>
               <Show when={props.config.isPending}>
-                <div class={styles.loading()}>検索中...</div>
+                <div className={styles.loading()}>検索中...</div>
               </Show>
 
               <ArkCombo.ItemGroup>
                 <For each={collection().items}>
                   {(item) => (
-                    <ArkCombo.Item item={item} class={styles.item()}>
+                    <ArkCombo.Item item={item} className={styles.item()}>
                       <ArkCombo.ItemText>
                         {props.config.renderItem(item)}
                       </ArkCombo.ItemText>

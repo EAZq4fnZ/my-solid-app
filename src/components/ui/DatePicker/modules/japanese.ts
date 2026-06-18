@@ -1,13 +1,13 @@
 // src/components/ui/DatePicker/modules/japanese.ts
 import type { DatePickerModule } from '../core';
 import { activeDateModule } from '@/lib/date'; // 共通の日付変換ライブラリ
-import { DatePickerConfig } from '../types';
+//import { DatePickerConfig } from '../types';
 
-export const japanese: DatePickerConfig = {
+export const japanese: DatePickerModule = {
   calendarId: 'japanese',
   locale: 'ja-JP-u-ca-japanese',
-  timeZone: 'Asia/Tokyo',
-  inputPlaceholder: '日付を入力 (例: 令和6年1月1日)',
+  timeZone: 'Asia/Tokyo', // offset:+09:00
+  inputPlaceholder: '2026/6/18',
 
   toFormat: (isoStr: string, template: string) => {
     // 共通ライブラリを介して和暦フォーマットを処理

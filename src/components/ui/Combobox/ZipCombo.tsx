@@ -60,11 +60,11 @@ export const ZipCombo = (props: ZipComboProps) => {
             itemToString: (item) => item.addrParts.zipCode,
             itemToValue: (item) => item.addrParts.zipCode,
             renderItem: (item) => (
-              <div class="flex flex-col gap-0.5 w-full">
-                <span class="font-mono font-bold text-zinc-100">
+              <div className="flex flex-col gap-0.5 w-full">
+                <span className="font-mono font-bold text-zinc-100">
                   {item.addrParts.zipCode}
                 </span>
-                <span class="text-xs text-zinc-400">{item.fullAddress}</span>
+                <span className="text-xs text-zinc-400">{item.fullAddress}</span>
               </div>
             ),
             onInputValueChange: (d: ComboboxInputValueChangeDetails) => {

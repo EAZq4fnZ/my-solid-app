@@ -21,12 +21,3 @@ export interface DatePickerState {
   value: DateValue[];
   onValueChange: (value: DateValue[]) => void;
 }
-
-// 統合されたProps定義
-export interface DatePickerProps {
-  field: FieldInfo;
-  status: DatePickerStatus;
-  config: DatePickerConfig;
-  state: DatePickerState;
-  className?: string;
-}

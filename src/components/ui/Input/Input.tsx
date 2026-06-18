@@ -4,19 +4,17 @@ import { tv, type VariantProps } from 'tailwind-variants';
 
 import { fieldStyles } from '../sharedStyles';
 
-// 1. スタイル定義: fieldStyles を継承
+// スタイル定義
 export const inputStyles = tv({
   extend: fieldStyles,
   slots: {
-    // Input 特有の追加スタイルがあればここに記述（現在は継承のみで十分です）
     root: 'flex flex-col w-full',
   },
 });
 
 type InputVariants = VariantProps<typeof inputStyles>;
 
-// 2. Props の定義
-// 通常の input 要素の属性（placeholder, type, value等）とバリアントを統合
+// Props定義
 interface InputProps
   extends JSX.InputHTMLAttributes<HTMLInputElement>,
     InputVariants {
@@ -25,34 +23,36 @@ interface InputProps
 }
 
 export const Input = (props: InputProps) => {
-  // 3. props を分解: スタイル用(variantProps) と input要素用(localProps)
   const [variantProps, localProps] = splitProps(props, [
     'label',
     'error',
-    'class',
+    'className',
   ]);
+  
   const styles = inputStyles();
 
   return (
-    <div class={styles.root()}>
-      {/* 4. ラベルの表示 (sharedStyles のスタイルを適用)[cite: 1] */}
+    <div className={styles.root({ className: variantProps.className })}>
+      {/* ラベル */}
       <Show when={variantProps.label}>
-        <label class={styles.label()} for={localProps.id}>
+        <label className={styles.label()} for={localProps.id}>
           {variantProps.label}
         </label>
       </Show>
 
-      {/* 5. Input 本体の表示 */}
+      {/* Input 本体 */}
       <input
         {...localProps}
-        // data-invalid 属性を付与することで sharedStyles のエラー用スタイルが発動[cite: 1]
-        data-invalid={variantProps.error ? '' : undefined}
-        class={styles.input({ class: variantProps.class })}
+        className={styles.input()}
+        aria-invalid={!!variantProps.error}
+        aria-describedby={variantProps.error ? `${localProps.id}-error` : undefined}
       />
 
-      {/* 6. エラーメッセージの表示 */}
+      {/* エラーメッセージ */}
       <Show when={variantProps.error}>
-        <p class={styles.errorText()}>{variantProps.error}</p>
+        <span className={styles.errorText()} id={`${localProps.id}-error`}>
+          {variantProps.error}
+        </span>
       </Show>
     </div>
   );
