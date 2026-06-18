@@ -1,9 +1,4 @@
 // src/components/ui/DatePicker/DefaultDatePicker.tsx
-import { splitProps, Index, Show } from 'solid-js';
-import { Portal } from 'solid-js/web';
-import { CalendarIcon, ChevronLeftIcon, ChevronRightIcon } from 'lucide-solid';
-import { tv } from 'tailwind-variants';
-
 import {
   DateInput as ArkDateInput,
   useDateInput,
@@ -14,10 +9,14 @@ import {
 } from '@ark-ui/solid/date-picker';
 import { LocaleProvider } from '@ark-ui/solid/locale';
 
+import { CalendarIcon, ChevronLeftIcon, ChevronRightIcon } from 'lucide-solid';
+import { Index } from 'solid-js';
+import { Portal } from 'solid-js/web';
+import { tv } from 'tailwind-variants';
 
-import type { DatePickerProps } from './core';
 import { Field } from '../Field';
 import { fieldStyles } from '../sharedStyles';
+import type { DatePickerProps } from './core';
 
 const datePickerStyles = tv({
   extend: fieldStyles,
@@ -54,24 +53,30 @@ export const DatePicker = (props: DatePickerProps) => {
   const styles = datePickerStyles();
 
   return (
-    <Field field={props.field} status={props.status} className={props.className}>
+    <Field
+      field={props.field}
+      status={props.status}
+      className={props.className}
+    >
       <LocaleProvider locale={props.config.locale}>
         <ArkDateInput.RootProvider value={dateInput}>
-          <ArkDateInput.Control className={styles.segmentGroup()}>
-            <ArkDateInput.SegmentGroup className="flex gap-1">
+          <ArkDateInput.Control class={styles.segmentGroup()}>
+            <ArkDateInput.SegmentGroup class="flex gap-1">
               <ArkDateInput.SegmentContext>
-                {(segment) => <ArkDateInput.Segment segment={segment} className="p-1" />}
+                {(segment) => (
+                  <ArkDateInput.Segment segment={segment} class="p-1" />
+                )}
               </ArkDateInput.SegmentContext>
             </ArkDateInput.SegmentGroup>
-            
+
             <ArkDatePicker.RootProvider value={datePicker}>
-              <ArkDatePicker.Trigger className="p-2">
+              <ArkDatePicker.Trigger class="p-2">
                 <CalendarIcon size={16} />
               </ArkDatePicker.Trigger>
 
               <Portal>
                 <ArkDatePicker.Positioner>
-                  <ArkDatePicker.Content className="bg-zinc-900 p-4 rounded-lg shadow-xl border border-zinc-800">
+                  <ArkDatePicker.Content class="bg-zinc-900 p-4 rounded-lg shadow-xl border border-zinc-800">
                     <ArkDatePicker.View view="day">
                       <DatePickerHeader />
                       <DatePickerTable type="day" />
@@ -90,15 +95,21 @@ export const DatePicker = (props: DatePickerProps) => {
 
 // ヘッダー部分の共通化（必要に応じて切り出し）
 const DatePickerHeader = () => (
-  <ArkDatePicker.ViewControl className="flex justify-between items-center mb-4">
-    <ArkDatePicker.PrevTrigger><ChevronLeftIcon size={16} /></ArkDatePicker.PrevTrigger>
-    <ArkDatePicker.ViewTrigger><ArkDatePicker.RangeText /></ArkDatePicker.ViewTrigger>
-    <ArkDatePicker.NextTrigger><ChevronRightIcon size={16} /></ArkDatePicker.NextTrigger>
+  <ArkDatePicker.ViewControl class="flex justify-between items-center mb-4">
+    <ArkDatePicker.PrevTrigger>
+      <ChevronLeftIcon size={16} />
+    </ArkDatePicker.PrevTrigger>
+    <ArkDatePicker.ViewTrigger>
+      <ArkDatePicker.RangeText />
+    </ArkDatePicker.ViewTrigger>
+    <ArkDatePicker.NextTrigger>
+      <ChevronRightIcon size={16} />
+    </ArkDatePicker.NextTrigger>
   </ArkDatePicker.ViewControl>
 );
 
 // テーブル部分の共通化
-const DatePickerTable = (props: { type: 'day' | 'month' | 'year' }) => (
+const DatePickerTable = (_props: { type: 'day' | 'month' | 'year' }) => (
   <ArkDatePicker.Table>
     <ArkDatePicker.TableBody>
       <ArkDatePicker.Context>
@@ -109,7 +120,9 @@ const DatePickerTable = (props: { type: 'day' | 'month' | 'year' }) => (
                 <Index each={week()}>
                   {(day) => (
                     <ArkDatePicker.TableCell value={day()}>
-                      <ArkDatePicker.TableCellTrigger>{day().day}</ArkDatePicker.TableCellTrigger>
+                      <ArkDatePicker.TableCellTrigger>
+                        {day().day}
+                      </ArkDatePicker.TableCellTrigger>
                     </ArkDatePicker.TableCell>
                   )}
                 </Index>

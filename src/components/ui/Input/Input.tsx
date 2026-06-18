@@ -26,16 +26,16 @@ export const Input = (props: InputProps) => {
   const [variantProps, localProps] = splitProps(props, [
     'label',
     'error',
-    'className',
+    'class',
   ]);
-  
+
   const styles = inputStyles();
 
   return (
-    <div className={styles.root({ className: variantProps.className })}>
+    <div class={styles.root({ className: variantProps.class })}>
       {/* ラベル */}
       <Show when={variantProps.label}>
-        <label className={styles.label()} for={localProps.id}>
+        <label class={styles.label()} for={localProps.id}>
           {variantProps.label}
         </label>
       </Show>
@@ -43,14 +43,16 @@ export const Input = (props: InputProps) => {
       {/* Input 本体 */}
       <input
         {...localProps}
-        className={styles.input()}
+        class={styles.input()}
         aria-invalid={!!variantProps.error}
-        aria-describedby={variantProps.error ? `${localProps.id}-error` : undefined}
+        aria-describedby={
+          variantProps.error ? `${localProps.id}-error` : undefined
+        }
       />
 
       {/* エラーメッセージ */}
       <Show when={variantProps.error}>
-        <span className={styles.errorText()} id={`${localProps.id}-error`}>
+        <span class={styles.errorText()} id={`${localProps.id}-error`}>
           {variantProps.error}
         </span>
       </Show>

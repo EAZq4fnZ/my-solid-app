@@ -1,6 +1,10 @@
 // src/components/ui/DatePicker/core.ts
-import { FieldInfo } from '../Field';
-import type { DatePickerConfig, DatePickerState, DatePickerStatus } from './types';
+import type { FieldInfo } from '../Field';
+import type {
+  DatePickerConfig,
+  DatePickerState,
+  DatePickerStatus,
+} from './types';
 
 /** 暦モジュールが実装すべき共通契約 */
 export interface DatePickerModule extends DatePickerConfig {
@@ -12,7 +16,7 @@ export interface DatePickerModule extends DatePickerConfig {
 export interface DatePickerProps {
   field: FieldInfo;
   status: DatePickerStatus;
-  module: DatePickerModule;
+  config: DatePickerModule;
   state: DatePickerState;
   className?: string;
 }

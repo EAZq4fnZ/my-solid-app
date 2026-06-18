@@ -1,11 +1,12 @@
 // src/components/ui/Combobox/ZipCombo.tsx
-import { createMemo } from 'solid-js';
 import type { ComboboxInputValueChangeDetails } from '@ark-ui/solid';
+import { createMemo } from 'solid-js';
 
-import { ComboboxRoot } from './Combobox';
-import type { FieldInfo } from '../Field';
-import type { StAddrInfo } from '@/types/zip';
 import { useZip } from '@/lib/zip/useZip';
+import type { StAddrInfo } from '@/types/zip';
+
+import type { FieldInfo } from '../Field';
+import { ComboboxRoot } from './Combobox';
 
 interface ZipComboProps {
   // biome-ignore lint/suspicious/noExplicitAny: Form internal context key
@@ -60,11 +61,11 @@ export const ZipCombo = (props: ZipComboProps) => {
             itemToString: (item) => item.addrParts.zipCode,
             itemToValue: (item) => item.addrParts.zipCode,
             renderItem: (item) => (
-              <div className="flex flex-col gap-0.5 w-full">
-                <span className="font-mono font-bold text-zinc-100">
+              <div class="flex flex-col gap-0.5 w-full">
+                <span class="font-mono font-bold text-zinc-100">
                   {item.addrParts.zipCode}
                 </span>
-                <span className="text-xs text-zinc-400">{item.fullAddress}</span>
+                <span class="text-xs text-zinc-400">{item.fullAddress}</span>
               </div>
             ),
             onInputValueChange: (d: ComboboxInputValueChangeDetails) => {

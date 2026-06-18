@@ -1,6 +1,6 @@
 // src/components/ui/DatePicker/modules/japanese.ts
-import type { DatePickerModule } from '../core';
 import { activeDateModule } from '@/lib/date'; // 共通の日付変換ライブラリ
+import type { DatePickerModule } from '../core';
 //import { DatePickerConfig } from '../types';
 
 export const japanese: DatePickerModule = {

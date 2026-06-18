@@ -1,7 +1,7 @@
 // src/components/ui/DatePicker/types.ts
 import type { DateValue } from '@ark-ui/solid/date-picker';
 
-import type { FieldInfo, CommonStatus } from '../Field';
+import type { CommonStatus } from '../Field';
 
 export interface DatePickerStatus extends CommonStatus {
   granularity?: 'day' | 'minute';

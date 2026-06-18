@@ -2,6 +2,7 @@
 import { createSignal, splitProps } from 'solid-js';
 
 import { Input } from './Input';
+
 interface FormatControlledInputProps {
   // biome-ignore lint/suspicious/noExplicitAny: <formからの値を受け取るためany型を使用>
   form: any;
