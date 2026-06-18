@@ -37,8 +37,8 @@ export const DatePicker = (props: DatePickerProps) => {
     selectionMode: props.status.selectionMode ?? 'single',
     disabled: props.status.disabled,
     readOnly: props.status.readOnly,
-    locale: props.module.locale,
-    timeZone: props.module.timeZone,
+    locale: props.config.locale,
+    timeZone: props.config.timeZone,
   });
 
   // DateInputのロジック初期化
@@ -47,15 +47,15 @@ export const DatePicker = (props: DatePickerProps) => {
     onValueChange: (details) => datePicker().setValue(details.value),
     disabled: props.status.disabled,
     readOnly: props.status.readOnly,
-    locale: props.module.locale,
-    timeZone: props.module.timeZone,
+    locale: props.config.locale,
+    timeZone: props.config.timeZone,
   });
 
   const styles = datePickerStyles();
 
   return (
     <Field field={props.field} status={props.status} className={props.className}>
-      <LocaleProvider locale={props.module.locale}>
+      <LocaleProvider locale={props.config.locale}>
         <ArkDateInput.RootProvider value={dateInput}>
           <ArkDateInput.Control className={styles.segmentGroup()}>
             <ArkDateInput.SegmentGroup className="flex gap-1">
