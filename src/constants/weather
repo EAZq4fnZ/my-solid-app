@@ -1,0 +1,23 @@
+// src/constants/weather.ts
+import { createMasterRegistry } from './factory';
+
+// 天気コードの定義
+const WEATHER_RAW_MASTER = {
+  fine: '晴れ',
+  cloudy: '曇り',
+  rainy: '雨',
+  icy: '雪・みぞれ',
+  foggy: '霧',
+  other: 'その他',
+  unknown: '不明',
+} as const;
+
+// ファクトリーを使ってすべての資産を自動生成
+export const Weather = createMasterRegistry(WEATHER_RAW_MASTER);
+
+// 型だけは個別に名前をつけてエクスポート（外部から使いやすくするため）
+//export type WeatherCode = keyof typeof WEATHER_RAW_MASTER;
+export type WeatherCode = (typeof Weather.codes)[number];
+
+/** 天気コードのバリデーション */
+export const weatherCodeSchema = Weather.schema;

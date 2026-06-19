@@ -1,0 +1,22 @@
+// src/constants/statusCodes.ts
+import { createMasterRegistry } from './factory';
+
+// ステータスコードの定義
+const STATUS_CODE_RAW_MASTER = {
+  treating: '治療中',
+  finished: '治療完了',
+  fixed: '入金待ち',
+  stopped: '中止',
+  settled: '入金済',
+  unknown: '不明',
+} as const;
+
+// ファクトリーを使ってすべての資産を自動生成
+export const StatusCodes = createMasterRegistry(STATUS_CODE_RAW_MASTER);
+
+// 型だけは個別に名前をつけてエクスポート（外部から使いやすくするため）
+//export type StatusCode = keyof typeof STATUS_CODE_RAW_MASTER;
+export type StatusCode = (typeof StatusCodes.codes)[number];
+
+/** ステータスコードのバリデーション */
+export const statusCodeSchema = StatusCodes.schema;

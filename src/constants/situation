@@ -1,0 +1,29 @@
+// src/constants/situation.ts
+import { createMasterRegistry } from './factory';
+
+// 事故状況の定義
+const SITUATION_RAW_MASTER = {
+  p2v: '人対車両',
+  v_head: '正面衝突',
+  v_side: '側面衝突',
+  v_cross: '出合い頭',
+  v_cont: '接触',
+  v_rear: '追突',
+  v_oth: 'その他',
+  s_fall: '担当',
+  s_dev: '路外逸脱',
+  s_col: '衝突',
+  s_oth: 'その他',
+  rail: '踏切',
+  unknown: '不明',
+} as const;
+
+// ファクトリーを使ってすべての資産を自動生成
+export const Situation = createMasterRegistry(SITUATION_RAW_MASTER);
+
+// 型だけは個別に名前をつけてエクスポート（外部から使いやすくするため）
+//export type SituationCode = keyof typeof SITUATION_RAW_MASTER;
+export type SituationCode = (typeof Situation.codes)[number];
+
+/** 事故状況コードのバリデーション */
+export const situationCodeSchema = Situation.schema;

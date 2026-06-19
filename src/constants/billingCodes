@@ -1,0 +1,22 @@
+// src/constants/billingCodes.ts
+import { createMasterRegistry } from './factory';
+
+// 請求コードの定義
+const BILLING_CODE_RAW_MASTER = {
+  ins: '一括',
+  cali: '被害者請求',
+  pici: '健保併用',
+  wcomp: '労災',
+  reim: '償還払い',
+  oth: 'その他',
+} as const;
+
+// ファクトリーを使ってすべての資産を自動生成
+export const BillingCodes = createMasterRegistry(BILLING_CODE_RAW_MASTER);
+
+// 型だけは個別に名前をつけてエクスポート（外部から使いやすくするため）
+//export type BillingCode = keyof typeof BILLING_CODES_RAW_MASTER;
+export type BillingCode = (typeof BillingCodes.codes)[number];
+
+/** 請求コードのバリデーション */
+export const billingCodeSchema = BillingCodes.schema;

@@ -1,0 +1,21 @@
+// src/constants/
+import { createMasterRegistry } from './factory';
+
+// 事故コードの定義
+const AX_TYPE_RAW_MASTER = {
+  injury: '人身事故',
+  property: '物件事故',
+  self: '自損',
+  other: 'その他',
+  unknown: '不明',
+} as const;
+
+// ファクトリーを使ってすべての資産を自動生成
+export const AxType = createMasterRegistry(AX_TYPE_RAW_MASTER);
+
+// 型だけは個別に名前をつけてエクスポート（外部から使いやすくするため）
+//export type AxTypeCode = keyof typeof AX_TYPE_RAW_MASTER;
+export type AxTypeCode = (typeof AxType.codes)[number];
+
+/** 事故コードのバリデーション */
+export const axTypeCodeSchema = AxType.schema;
