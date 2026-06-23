@@ -52,6 +52,7 @@ export interface ParsedDateParts {
   month: number | null;
   day: number | null;
   timeParts: (number | null)[];
+  offset: string | null;
 }
 
 export interface DateProviderConfig {

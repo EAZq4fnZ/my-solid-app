@@ -68,21 +68,23 @@ export function createDateTimeModule(
    * @param mode string 'date' | 'datetime'
    * @returns IsoDateString/IsoDateTimeString 標準形に整えた入力文字列(YYYY-MM-DDまたはYYYY-MM-DDTHH:mm:ss+オフセット)
    */
-  function tryFromRaw(value: string, mode: 'date'): IsoDateString | null;
+  function tryFromRaw(value: string, mode: 'date', options?: DateParseOptions): IsoDateString | null;
   function tryFromRaw(
     value: string,
     mode: 'datetime',
+    options?: DateParseOptions
   ): IsoDateTimeString | null;
   function tryFromRaw(
     value: string,
     mode: 'date' | 'datetime',
+    options?: DateParseOptions
   ): IsoDateString | IsoDateTimeString | null {
     const rawText = normalize(value); // 入力文字列を正規化
     if (!rawText) return null; // 空文字は無視、null を返す
 
     try {
       // 各プロバイダでの文字列クレンジング、元号・和暦➔西暦数値への翻訳
-      const { year, month, day, timeParts } = config.parser(rawText);
+      const { year, month, day, timeParts , offset} = config.parser(rawText);
 
       if (year === null || month === null || day === null) {
         return null;
@@ -105,18 +107,27 @@ export function createDateTimeModule(
       if (rawHour == null || rawMinute == null) {
         return null;
       }
-      // 一旦 ZonedDateTime へ変換することで、日付の正規化・妥当性の検証
-      const datetime = Temporal.ZonedDateTime.from({
-        year,
-        month,
-        day,
-        hour: rawHour,
-        minute: rawMinute,
-        second: rawSecond ?? 0,
-        timeZone: config.timezone,
-      });
+
+      const zdt = (() => {
+  const targetTimezone = options?.timezone ?? config.timezone;
+  const isoDatePart = `${String(year).padStart(4, '0')}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}T${String(rawHour).padStart(2, '0')}:${String(rawMinute).padStart(2, '0')}:${String(rawSecond).padStart(2, '0')}`;
+
+  if (offset) {
+    return Temporal.Instant.from(isoDatePart + offset).toZonedDateTimeISO(targetTimezone);
+  }
+
+  return Temporal.ZonedDateTime.from({
+    year,
+    month,
+    day,
+    hour: rawHour,
+    minute: rawMinute,
+    second: rawSecond?? 0,
+    timeZone: targetTimezone,
+  });
+})();
       
-      return datetime.toString({
+      return zdt.toString({
         calendarName: 'never',
         offset: 'auto',
         timeZoneName: 'never',
@@ -132,14 +143,15 @@ export function createDateTimeModule(
    * @param mode
    * @returns IsoDateString/IsoDateTimeString
    */
-  function fromRaw(value: string, mode: 'date'): IsoDateString;
-  function fromRaw(value: string, mode: 'datetime'): IsoDateTimeString;
+  function fromRaw(value: string, mode: 'date', options?: DateParseOptions): IsoDateString;
+  function fromRaw(value: string, mode: 'datetime', options?: DateParseOptions): IsoDateTimeString;
   function fromRaw(
     value: string,
     mode: 'date' | 'datetime',
+    options?: DateParseOptions
   ): IsoDateString | IsoDateTimeString {
     // biome-ignore lint/suspicious/noExplicitAny: <mode: 'date' | 'datetime'両対応のためany型を使用>
-    const result = tryFromRaw(value, mode as any);
+    const result = tryFromRaw(value, mode as any, options);
     if (!result) {
       throw new Error('Invalid date format:"{value}"');
     }
@@ -148,8 +160,8 @@ export function createDateTimeModule(
 
   const formatCache = new Map<string, string>();
 
-  const toFormat = (isoStr: string, template: string): string => {
-    const key = `${isoStr}::${template}`; // 結果をキャッシュするためのキー(日付文字列 + 置換テンプレート)
+  const toFormat = (isoStr: string, template: string, timeZone: string = config.timezone): string => {
+    const key = `${isoStr}::${template}::${timeZone}`; // 結果をキャッシュするためのキー(日付文字列 + 置換テンプレート)
     const cached = formatCache.get(key); // キーとキャッシュがあれば、その結果を返す
     if (cached !== undefined) {
       return cached;
@@ -248,3 +260,9 @@ export function createDateTimeModule(
     fromParts,
   };
 }
+
+// 日付解析オプション 必要に応じて拡張可能なオプションを定義する
+type DateParseOptions = {
+  timezone?: string;
+  calendar?: string;  // 現在は未使用
+};
