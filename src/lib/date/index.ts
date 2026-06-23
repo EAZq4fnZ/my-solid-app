@@ -38,7 +38,7 @@ export const dateUtils = {
   isValid: (value: string): boolean => activeDateModule.isValid(value, 'date'),
   tryFromRaw: (value: string): IsoDateString | null =>
     activeDateModule.tryFromRaw(value, 'date'),
-  fromParts: (y: number, mm: number, d: number,timezone: string,): IsoDateString | null => 
+  fromParts: (y: number, mm: number, d: number, timezone: string,): IsoDateString | null => 
       activeDateModule.fromParts(y, mm, d, 0,0,0,timezone, 'date') as IsoDateString | null,
 };
 
