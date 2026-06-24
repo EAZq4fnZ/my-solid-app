@@ -14,18 +14,18 @@ const ISO_WEEK_DAYS = [
 
 const MONTHS = [
   { name: '', abbr: '' }, // 0番目（ダミー）
-  {name:'January' ,abbr :'Jan'}, 
-  {name:'February', abbr:'Feb'},
-  {name:'March', abbr:'Mar'}, 
-  {name:'April', abbr:'Apr'}, 
-  {name:'May', abbr:'May'}, 
-  {name:'June', abbr:'Jun'}, 
-  {name:'July', abbr:'Jul'}, 
-  {name:'August', abbr:'Aug'}, 
-  {name:'September', abbr:'Sep'}, 
-  {name:'October', abbr:'Oct'}, 
-  {name:'November', abbr:'Nov'}, 
-  {name:'December', abbr:'Dec'},
+  { name: 'January', abbr: 'Jan' },
+  { name: 'February', abbr: 'Feb' },
+  { name: 'March', abbr: 'Mar' },
+  { name: 'April', abbr: 'Apr' },
+  { name: 'May', abbr: 'May' },
+  { name: 'June', abbr: 'Jun' },
+  { name: 'July', abbr: 'Jul' },
+  { name: 'August', abbr: 'Aug' },
+  { name: 'September', abbr: 'Sep' },
+  { name: 'October', abbr: 'Oct' },
+  { name: 'November', abbr: 'Nov' },
+  { name: 'December', abbr: 'Dec' },
 ] as const;
 
 export const parseIso8601RawText = (text: string): ParsedDateParts => {
@@ -42,17 +42,17 @@ export const parseIso8601RawText = (text: string): ParsedDateParts => {
     month: nums[1] ?? null,
     day: nums[2] ?? null,
     timeParts: [nums[3] ?? 0, nums[4] ?? 0, nums[5] ?? 0],
-    offset: offset ?? 'Z', // オフセットがなければ 'Z' を代入
+    offset: offset ?? 'Z',
   };
 };
 
-export const fetchIdo8601EraInfo= (parts:CalendarParts):EraInfo => ({
-      ...parts,
-      eraName: 'Common Era',
-      eraAbbr: 'CE',
-      eraYearText: String(parts.year).padStart(4, '0'),
-      monthText: String(parts.month).padStart(2, '0'),
-      monthAbbrText: MONTHS[parts.month]?.abbr??'',
-      dayText: String(parts.day).padStart(2, '0'),
-      dayOfWeekText: ISO_WEEK_DAYS[parts.dayOfWeek]?.abbr ?? '',
-    });
+export const fetchIdo8601EraInfo = (parts: CalendarParts): EraInfo => ({
+  ...parts,
+  eraName: 'Common Era',
+  eraAbbr: 'CE',
+  eraYearText: String(parts.year).padStart(4, '0'),
+  monthText: String(parts.month).padStart(2, '0'),
+  monthAbbrText: MONTHS[parts.month]?.abbr ?? '',
+  dayText: String(parts.day).padStart(2, '0'),
+  dayOfWeekText: ISO_WEEK_DAYS[parts.dayOfWeek]?.abbr ?? '',
+});

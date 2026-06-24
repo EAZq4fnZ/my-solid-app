@@ -1,9 +1,10 @@
-import { FieldSet } from '@/components/ui/Fieldset';
-import { Field } from '@/components/ui/Field';
-import { Input } from '@/components/ui/Input';
+import { ZipCombo } from '@/components/ui/Combobox/ZipCombo';
 import { DatePicker } from '@/components/ui/DatePicker';
 import { datePickerRegistry } from '@/components/ui/DatePicker/registry';
-import { ZipCombo } from '@/components/ui/Combobox/ZipCombo';
+import { Field } from '@/components/ui/Field';
+import { FieldSet } from '@/components/ui/Fieldset';
+import { Input } from '@/components/ui/Input/Input';
+import { Select } from '@/components/ui/Select';
 
 interface PxFormFieldsProps<T> {
   form: T;
@@ -17,9 +18,9 @@ export const PxFormFields = <T,>(props: PxFormFieldsProps<T>) => {
   return (
     <div class="space-y-6">
       {/* 氏名グループ */}
-      <FieldSet fieldSet={{ label: '患者氏名' }} status={{}}>
+      <FieldSet fieldSet={{ label: '患者氏名' }}>
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <FormField name="last_name">
+          <FormField name="last_name" status={{ required: true }}>
             {/* biome-ignore lint/suspicious/noExplicitAny: <field: any> */}
             {(field: any) => (
               <Input
@@ -32,7 +33,7 @@ export const PxFormFields = <T,>(props: PxFormFieldsProps<T>) => {
               />
             )}
           </FormField>
-          <FormField name="first_name">
+          <FormField name="first_name" status={{ required: true }}>
             {/* biome-ignore lint/suspicious/noExplicitAny: <field: any> */}
             {(field: any) => (
               <Input
@@ -49,9 +50,9 @@ export const PxFormFields = <T,>(props: PxFormFieldsProps<T>) => {
       </FieldSet>
 
       {/* 氏名カナ */}
-      <FieldSet fieldSet={{ label: '患者氏名カナ' }} status={{}}>
+      <FieldSet fieldSet={{ label: '患者氏名カナ' }}>
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <FormField name="last_kana">
+          <FormField name="last_kana" status={{ required: true }}>
             {/* biome-ignore lint/suspicious/noExplicitAny: <field: any> */}
             {(field: any) => (
               <Input
@@ -64,7 +65,7 @@ export const PxFormFields = <T,>(props: PxFormFieldsProps<T>) => {
               />
             )}
           </FormField>
-          <FormField name="first_kana">
+          <FormField name="first_kana" status={{ required: true }}>
             {/* biome-ignore lint/suspicious/noExplicitAny: <field: any> */}
             {(field: any) => (
               <Input
@@ -81,17 +82,17 @@ export const PxFormFields = <T,>(props: PxFormFieldsProps<T>) => {
       </FieldSet>
 
       {/* 性別・生年月日 */}
-      <Field field={{ label: '性別' }} status={{}}>
+      <Field field={{ label: '性別' }}>
         <FormField name="gender_code">
           {/* biome-ignore lint/suspicious/noExplicitAny: <field: any> */}
           {(field: any) => (
-            <select
+            <Select
               value={field().state.value ?? ''}
               onChange={(e) => field().handleChange(e.target.value)}
             >
               <option value="m">男性</option>
               <option value="f">女性</option>
-            </select>
+            </Select>
           )}
         </FormField>
       </Field>
@@ -113,7 +114,7 @@ export const PxFormFields = <T,>(props: PxFormFieldsProps<T>) => {
 
       {/* 連絡先 */}
       <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <Field field={{ label: '電話番号' }} status={{}}>
+        <Field field={{ label: '電話番号' }} status={{ required: true }}>
           <FormField name="tel">
             {/* biome-ignore lint/suspicious/noExplicitAny: <field: any> */}
             {(field: any) => (
@@ -124,7 +125,7 @@ export const PxFormFields = <T,>(props: PxFormFieldsProps<T>) => {
             )}
           </FormField>
         </Field>
-        <Field field={{ label: 'メール' }} status={{}}>
+        <Field field={{ label: 'メール' }}>
           <FormField name="email">
             {/* biome-ignore lint/suspicious/noExplicitAny: <field: any> */}
             {(field: any) => (

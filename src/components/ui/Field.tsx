@@ -22,7 +22,7 @@ export interface FieldInfo {
 /** FieldProps */
 export interface FieldProps {
   field: FieldInfo;
-  status: CommonStatus;
+  status?: CommonStatus;
   children: JSX.Element;
   className?: string;
 }
@@ -33,10 +33,10 @@ export const Field = (props: FieldProps) => {
   return (
     <ArkField.Root
       // 状態を明示的に Ark UI へ注入
-      invalid={props.status.invalid}
-      disabled={props.status.disabled}
-      readOnly={props.status.readOnly}
-      required={props.status.required}
+      invalid={props.status?.invalid ?? false}
+      disabled={props.status?.disabled ?? false}
+      readOnly={props.status?.readOnly ?? false}
+      required={props.status?.required ?? false}
       class={styles.root({ class: props.className })}
     >
       <Show when={props.field.label}>

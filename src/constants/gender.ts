@@ -16,5 +16,8 @@ export const Gender = createMasterRegistry(GENDER_RAW_MASTER);
 //export type GenderCode = keyof typeof GENDER_RAW_MASTER;
 export type GenderCode = (typeof Gender.codes)[number];
 
+// UI Select用の value-label ペアの配列
+export const genderOptions = Gender.options;
+
 /** 性別コードのバリデーション */
 export const genderCodeSchema = Gender.schema;

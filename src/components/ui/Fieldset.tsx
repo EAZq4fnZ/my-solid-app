@@ -20,7 +20,7 @@ export interface FieldSetInfo {
 
 export interface FieldSetProps {
   fieldSet: FieldSetInfo;
-  status: CommonStatus;
+  status?: CommonStatus;
   children: JSX.Element;
   className?: string;
 }
@@ -29,7 +29,7 @@ export const FieldSet = (props: FieldSetProps) => {
 
   return (
     <ArkFieldset.Root
-      invalid={props.status.invalid}
+      invalid={props.status?.invalid ?? false}
       class={styles.root({ class: props.className })}
     >
       <Show when={props.fieldSet.label}>
