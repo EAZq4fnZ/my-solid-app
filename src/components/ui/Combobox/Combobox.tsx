@@ -1,47 +1,22 @@
 // src/components/ui/Combobox/Combobox.tsx
 import { Combobox as ArkCombo, createListCollection } from '@ark-ui/solid';
 import { ChevronDownIcon, XIcon } from 'lucide-solid';
-import { createMemo, For, type JSX, Show } from 'solid-js';
+import { For, Show } from 'solid-js';
 import { Portal } from 'solid-js/web';
 import { tv } from 'tailwind-variants';
 
-import { type CommonStatus, Field, type FieldInfo } from '../Field';
+import { Field } from '../Field';
 import { fieldStyles } from '../sharedStyles';
+import type { ComboboxRootProps } from './types';
 
-// Combobox特有の設定型を定義（昨日合意した構造）
-export interface ComboboxConfig<T> {
-  items: T[];
-  isPending?: boolean | (() => boolean);
-  renderItem: (item: T) => JSX.Element;
-  itemToString?: (item: T) => string;
-  itemToValue?: (item: T) => string;
-  onInputValueChange?: (details: { inputValue: string }) => void;
-}
-
-// 状態管理用（仮）
-export interface ComboboxState<T> {
-  value?: string[];
-  onValueChange?: (details: { value: string[]; items: T[] }) => void;
-}
-
-// 構造化されたProps
-export interface ComboboxRootProps<T> {
-  field: FieldInfo;
-  status: CommonStatus;
-  state: ComboboxState<T>;
-  config: ComboboxConfig<T>;
-  className?: string;
-}
-
+// スタイル定義は既存のものを利用
 export const comboboxStyles = tv({
   extend: fieldStyles,
   slots: {
     root: 'flex flex-col gap-1.5 w-full',
     control: 'relative flex items-center w-full',
-    input: [
+    input:
       'flex h-11 w-full rounded-md border border-zinc-700 bg-zinc-800 px-3 py-2 text-zinc-100',
-      'focus:ring-2 focus:ring-zinc-500 outline-none transition-all placeholder:text-zinc-500',
-    ],
     trigger:
       'absolute right-3 text-zinc-500 hover:text-zinc-100 cursor-pointer z-10',
     clearTrigger:
@@ -55,21 +30,15 @@ export const comboboxStyles = tv({
 });
 
 export const ComboboxRoot = <T,>(props: ComboboxRootProps<T>) => {
-  const collection = createMemo(() =>
+  const styles = comboboxStyles();
+  const collection = () =>
     createListCollection({
       items: props.config.items ?? [],
       itemToString: props.config.itemToString,
       itemToValue: props.config.itemToValue,
-    }),
-  );
-
-  const styles = comboboxStyles({
-    disabled: props.status.disabled ? ('true' as 'true') : undefined,
-    invalid: props.status.invalid ? ('true' as 'true') : undefined,
-  });
+    });
 
   return (
-    // 分解せず、構造化したオブジェクトをそのまま Field へ渡す
     <Field
       field={props.field}
       status={props.status}
@@ -80,8 +49,6 @@ export const ComboboxRoot = <T,>(props: ComboboxRootProps<T>) => {
         value={props.state.value}
         onValueChange={props.state.onValueChange}
         onInputValueChange={props.config.onInputValueChange}
-        disabled={props.status.disabled}
-        invalid={props.status.invalid}
         class={styles.root()}
       >
         <ArkCombo.Control class={styles.control()}>
@@ -90,33 +57,27 @@ export const ComboboxRoot = <T,>(props: ComboboxRootProps<T>) => {
             class={styles.input()}
           />
           <Show when={props.state.value && props.state.value.length > 0}>
-            <ArkCombo.ClearTrigger class={styles.clearTrigger()}>
+            <ArkCombo.ClearTrigger>
               <XIcon size={14} />
             </ArkCombo.ClearTrigger>
           </Show>
-          <ArkCombo.Trigger class={styles.trigger()}>
+          <ArkCombo.Trigger>
             <ChevronDownIcon size={16} />
           </ArkCombo.Trigger>
         </ArkCombo.Control>
-
         <Portal>
-          <ArkCombo.Positioner class={styles.positioner()}>
-            <ArkCombo.Content class={styles.content()}>
+          <ArkCombo.Positioner>
+            <ArkCombo.Content>
               <Show when={props.config.isPending}>
-                <div class={styles.loading()}>検索中...</div>
+                <div>検索中...</div>
               </Show>
-
-              <ArkCombo.ItemGroup>
-                <For each={collection().items}>
-                  {(item) => (
-                    <ArkCombo.Item item={item} class={styles.item()}>
-                      <ArkCombo.ItemText>
-                        {props.config.renderItem(item)}
-                      </ArkCombo.ItemText>
-                    </ArkCombo.Item>
-                  )}
-                </For>
-              </ArkCombo.ItemGroup>
+              <For each={collection().items}>
+                {(item) => (
+                  <ArkCombo.Item item={item}>
+                    {props.config.renderItem(item)}
+                  </ArkCombo.Item>
+                )}
+              </For>
             </ArkCombo.Content>
           </ArkCombo.Positioner>
         </Portal>
