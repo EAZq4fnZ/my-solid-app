@@ -1,96 +1,84 @@
-// components/ui/Select.tsx
+// src/components/ui/Select/Select.tsx
 import { Select as ArkSelect, createListCollection } from '@ark-ui/solid';
-import { createMemo, Index, Show, splitProps } from 'solid-js';
+import { ChevronDownIcon } from 'lucide-solid';
+import { For, Show } from 'solid-js';
 import { Portal } from 'solid-js/web';
-import { tv, type VariantProps } from 'tailwind-variants';
+import { tv } from 'tailwind-variants';
 
+import { CommonStatus, Field, FieldInfo } from './Field';
 import { fieldStyles } from './sharedStyles';
+//import type { SelectRootProps } from './types';
 
-// --- Select コンポーネント独自の定義 ---
+
 export const selectStyles = tv({
-  extend: fieldStyles, // 共通の label, input(trigger用), errorText を継承
+  extend: fieldStyles,
   slots: {
-    content: [
-      'z-50 min-w-[8rem] overflow-hidden rounded-md border border-zinc-800 bg-zinc-950 p-1 text-zinc-200 shadow-xl',
-      'data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95',
-    ],
-    item: [
-      'relative flex w-full cursor-pointer select-none items-center rounded-sm py-1.5 px-2 text-sm outline-none transition-colors',
-      'hover:bg-zinc-800 focus:bg-zinc-800 data-[selected]:bg-zinc-800 data-[selected]:text-white data-[highlighted]:bg-zinc-800',
-    ],
-    control: 'relative w-full',
-    trigger: 'flex items-center justify-between', // fieldStyles.input に追加するスタイル[cite: 1]
+    root: 'flex flex-col gap-1.5 w-full',
+    control: 'relative flex items-center w-full',
+    trigger: 'flex h-11 w-full items-center justify-between rounded-md border border-zinc-700 bg-zinc-800 px-3 py-2 text-zinc-100',
+    content: 'z-50 min-w-[var(--reference-width)] overflow-hidden rounded-md border border-zinc-700 bg-zinc-800 p-1 text-zinc-200 shadow-xl',
+    item: 'flex w-full cursor-pointer select-none items-center rounded-sm py-1.5 px-2 text-sm text-zinc-300 hover:bg-zinc-700 data-[selected]:bg-zinc-700 data-[selected]:text-white',
   },
 });
 
-type SelectVariants = VariantProps<typeof selectStyles>;
-interface SelectProps
-  // biome-ignore lint/suspicious/noExplicitAny: Ark UI v3 仕様
-  extends Omit<ArkSelect.RootProps<any>, 'collection'>,
-    SelectVariants {
-  label?: string;
-  placeholder?: string;
-  error?: string;
-  options: { label: string; value: string }[];
+export interface SelectConfig<T> {
+  items: T[];
+  itemToString?: (item: T) => string;
+  itemToValue?: (item: T) => string;
 }
 
-export const Select = (props: SelectProps) => {
-  const [variantProps, localProps] = splitProps(props, [
-    'label',
-    'placeholder',
-    'error',
-    'options',
-  ]);
+export interface SelectState<T> {
+  value?: string[];
+  onValueChange?: (details: { value: string[]; items: T[] }) => void;
+}
+
+export interface SelectRootProps<T> {
+  field: FieldInfo;
+  status: CommonStatus;
+  state: SelectState<T>;
+  config: SelectConfig<T>;
+  className?: string;
+}
+export const SelectRoot = <T,>(props: SelectRootProps<T>) => {
   const styles = selectStyles();
-  // Ark UI v3 仕様: collection の作成
-  const collection = createMemo(() =>
-    createListCollection({ items: variantProps.options ?? [] }),
-  );
+  const collection = () => createListCollection({
+    items: props.config.items ?? [],
+    itemToString: props.config.itemToString,
+    itemToValue: props.config.itemToValue,
+  });
 
   return (
-    <ArkSelect.Root
-      {...localProps}
-      collection={collection()}
-      positioning={{ gutter: 4 }}
-    >
-      {/* 1. ラベル (sharedStyles 継承) */}[cite: 1]
-      <Show when={variantProps.label}>
-        <ArkSelect.Label class={styles.label()}>
-          {variantProps.label}
-        </ArkSelect.Label>
-      </Show>
-      <ArkSelect.Control class={styles.control()}>
-        {/* 2. トリガー (sharedStyles の input スタイルを適用) */}[cite: 1]
-        <ArkSelect.Trigger
-          class={styles.input({ class: styles.trigger() })}
-          data-invalid={variantProps.error ? '' : undefined}
-        >
-          <ArkSelect.ValueText
-            placeholder={variantProps.placeholder ?? '選択してください'}
-          />
-          <ArkSelect.Indicator class="text-zinc-500 text-[10px]">
-            ▼
-          </ArkSelect.Indicator>
-        </ArkSelect.Trigger>
-      </ArkSelect.Control>
-      <Portal>
-        <ArkSelect.Positioner>
-          <ArkSelect.Content class={styles.content()}>
-            <Index each={collection().items}>
-              {(item) => (
-                <ArkSelect.Item item={item()} class={styles.item()}>
-                  <ArkSelect.ItemText>{item().label}</ArkSelect.ItemText>
-                  <ArkSelect.ItemIndicator>✓</ArkSelect.ItemIndicator>
-                </ArkSelect.Item>
-              )}
-            </Index>
-          </ArkSelect.Content>
-        </ArkSelect.Positioner>
-      </Portal>
-      {/* 3. エラーメッセージ (sharedStyles 継承) */}[cite: 1]
-      <Show when={variantProps.error}>
-        <p class={styles.errorText()}>{variantProps.error}</p>
-      </Show>
-    </ArkSelect.Root>
+    <Field field={props.field} status={props.status} className={props.className}>
+      <ArkSelect.Root
+        collection={collection()}
+        value={props.state.value}
+        onValueChange={props.state.onValueChange}
+        className={styles.root()}
+      >
+        <ArkSelect.Control className={styles.control()}>
+          <ArkSelect.Trigger className={styles.trigger()}>
+            <ArkSelect.ValueText placeholder={props.field.placeholder} />
+            <ArkSelect.Indicator>
+              <ChevronDownIcon size={16} />
+            </ArkSelect.Indicator>
+          </ArkSelect.Trigger>
+        </ArkSelect.Control>
+
+        <Portal>
+          <ArkSelect.Positioner>
+            <ArkSelect.Content className={styles.content()}>
+              <For each={collection().items}>
+                {(item:any) => (
+                  <ArkSelect.Item item={item} className={styles.item()}>
+                    <ArkSelect.ItemText>{item.label}</ArkSelect.ItemText>
+                    <ArkSelect.ItemIndicator>✓</ArkSelect.ItemIndicator>
+                  </ArkSelect.Item>
+                )}
+              </For>
+            </ArkSelect.Content>
+          </ArkSelect.Positioner>
+        </Portal>
+      </ArkSelect.Root>
+    </Field>
   );
 };
