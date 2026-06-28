@@ -34,9 +34,12 @@ export const ComboboxRoot = <T,>(props: ComboboxRootProps<T>) => {
   const collection = () =>
     createListCollection({
       items: props.config.items ?? [],
-      itemToString: props.config.itemToString,
+      itemToString: props.config.itemToString??((item) => String(props.config.renderItem(item))),
       itemToValue: props.config.itemToValue,
     });
+const renderItem = props.config.renderItem 
+    ? props.config.renderItem 
+    : (item: T) => props.config.itemToString?.(item) ?? String(item);
 
   return (
     <Field
@@ -74,7 +77,7 @@ export const ComboboxRoot = <T,>(props: ComboboxRootProps<T>) => {
               <For each={collection().items}>
                 {(item) => (
                   <ArkCombo.Item item={item}>
-                    {props.config.renderItem(item)}
+                    {renderItem(item)}
                   </ArkCombo.Item>
                 )}
               </For>

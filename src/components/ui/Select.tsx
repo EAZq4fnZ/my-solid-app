@@ -1,7 +1,7 @@
 // src/components/ui/Select/Select.tsx
 import { Select as ArkSelect, createListCollection } from '@ark-ui/solid';
 import { ChevronDownIcon } from 'lucide-solid';
-import { For, Show } from 'solid-js';
+import { For, Show, type JSX } from 'solid-js';
 import { Portal } from 'solid-js/web';
 import { tv } from 'tailwind-variants';
 
@@ -25,6 +25,7 @@ export interface SelectConfig<T> {
   items: T[];
   itemToString?: (item: T) => string;
   itemToValue?: (item: T) => string;
+  renderItem: (item: T) => JSX.Element;
 }
 
 export interface SelectState<T> {
@@ -47,6 +48,10 @@ export const SelectRoot = <T,>(props: SelectRootProps<T>) => {
     itemToValue: props.config.itemToValue,
   });
 
+  const renderItem = props.config.renderItem 
+    ? props.config.renderItem 
+    : (item: T) => props.config.itemToString?.(item) ?? String(item);
+
   return (
     <Field field={props.field} status={props.status} className={props.className}>
       <ArkSelect.Root
@@ -68,12 +73,12 @@ export const SelectRoot = <T,>(props: SelectRootProps<T>) => {
           <ArkSelect.Positioner>
             <ArkSelect.Content className={styles.content()}>
               <For each={collection().items}>
-                {(item:any) => (
-                  <ArkSelect.Item item={item} className={styles.item()}>
-                    <ArkSelect.ItemText>{item.label}</ArkSelect.ItemText>
-                    <ArkSelect.ItemIndicator>✓</ArkSelect.ItemIndicator>
-                  </ArkSelect.Item>
-                )}
+                {(item) => (
+    <ArkSelect.Item item={item} className={styles.item()}>
+      <ArkSelect.ItemText>{renderItem(item)}</ArkSelect.ItemText>
+      <ArkSelect.ItemIndicator>✓</ArkSelect.ItemIndicator>
+    </ArkSelect.Item>
+  )}
               </For>
             </ArkSelect.Content>
           </ArkSelect.Positioner>
