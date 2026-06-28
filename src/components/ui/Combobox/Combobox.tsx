@@ -34,7 +34,9 @@ export const ComboboxRoot = <T,>(props: ComboboxRootProps<T>) => {
   const collection = () =>
     createListCollection({
       items: props.config.items ?? [],
-      itemToString: props.config.itemToString??((item) => String(props.config.renderItem(item))),
+      itemToString: props.config.itemToString ?? ((item) => 
+      props.config.renderItem ? String(props.config.renderItem(item)) : String(item)
+    ),
       itemToValue: props.config.itemToValue,
     });
 const renderItem = props.config.renderItem 

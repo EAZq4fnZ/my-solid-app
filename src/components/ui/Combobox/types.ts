@@ -7,10 +7,10 @@ import type { CommonStatus, FieldInfo } from '../Field';
 export interface ComboboxConfig<T> {
   items: T[];
   isPending?: boolean | (() => boolean);
-  renderItem: (item: T) => JSX.Element;
   itemToString?: (item: T) => string;
   itemToValue?: (item: T) => string;
   onInputValueChange?: (details: { inputValue: string }) => void;
+  renderItem?: (item: T) => JSX.Element;
 }
 
 // コンポーネント共通の状態型
